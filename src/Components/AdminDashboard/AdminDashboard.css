@@ -1,0 +1,159 @@
+/* Estructura principal */
+.admin-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f5f7fa;
+}
+
+.admin-sidebar {
+  width: 280px;
+  background-color: #4CAF50;
+  color: white;
+  padding: 20px 0;
+  box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+}
+
+.sidebar-header {
+  padding: 0 20px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.sidebar-header h2 {
+  color: white;
+  font-size: 1.3rem;
+  margin: 0;
+}
+
+.sidebar-nav button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 24px;
+  text-align: left;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.9);
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.sidebar-nav button:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.sidebar-nav button.active {
+  background: #3e8e41;
+  font-weight: 500;
+}
+
+.admin-main {
+  flex: 1;
+  padding: 30px;
+  background-color: #f5f7fa;
+}
+
+/* Componentes comunes */
+.management-panel, 
+.reports-panel, 
+.suppliers-panel {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+/* Tablas */
+.table-container {
+  margin-top: 20px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  background-color: #4CAF50;
+  color: white;
+  font-weight: 500;
+  padding: 14px 16px;
+  text-align: left;
+}
+
+td {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  color: #333;
+}
+
+/* Botones */
+.btn {
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+}
+
+.btn-primary:hover {
+  background-color: #3e8e41;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid #4CAF50;
+  color: #4CAF50;
+}
+
+/* Tarjetas */
+.card {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  margin-bottom: 20px;
+}
+
+.card-title {
+  color: #4CAF50;
+  margin-top: 0;
+  font-size: 1.1rem;
+}
+
+/* Formularios */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 8px;
+  color: #333;
+  font-weight: 500;
+}
+
+.form-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  transition: all 0.3s;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #4CAF50;
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+}
