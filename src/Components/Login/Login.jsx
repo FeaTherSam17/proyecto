@@ -3,7 +3,18 @@ import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import './Login.css';
 import logo from './assets/logo.png';
 
+import { useNavigate } from 'react-router-dom'; //CODIGO PARA NAGEAR PROVISIONAL|
+
 const Login = () => {
+
+  //////////////////////PROVISIONAL PARA NAVEGAR A ADMIN///////////////////////
+  const navigate = useNavigate();
+
+  const handleAdminAccess = () => {
+    navigate('/admin');
+  };
+    ////////////////////////////////////////////////
+
   const [showPassword, setShowPassword] = useState(false);
   const [credentials, setCredentials] = useState({
     username: '',
@@ -94,6 +105,25 @@ const Login = () => {
           </div>
         </div>
       </div>
+
+//BOTON PROVISIONAL PARA NAVEGAR A ADMIN
+      <button 
+        onClick={handleAdminAccess}
+        style={{
+          marginTop: '20px',
+          padding: '10px 15px',
+          backgroundColor: '#4CAF50',
+          color: 'white',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer'
+        }}
+      >
+        Acceso Directo al Panel
+      </button>
+
+
+
     </div>
   );
 };

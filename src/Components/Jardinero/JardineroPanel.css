@@ -1,0 +1,115 @@
+/* Estilos base */
+.panel-jardinero {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 10px;
+  }
+  
+  .header-panel {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  
+  .header-panel h1 {
+    color: #2e7d32;
+    margin: 0;
+  }
+  
+  /* Filtros */
+  .selector-filtro {
+    padding: 8px 12px;
+    border-radius: 5px;
+    border: 1px solid #ced4da;
+  }
+  
+  /* Lista de tareas */
+  .lista-tareas {
+    display: grid;
+    gap: 15px;
+  }
+  
+  .tarea {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  /* Colores de prioridad */
+  .tarea.alta {
+    border-left: 4px solid #dc3545;
+  }
+  
+  .tarea.media {
+    border-left: 4px solid #ffc107;
+  }
+  
+  .tarea.baja {
+    border-left: 4px solid #28a745;
+  }
+  
+  .badge-prioridad {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+  
+  .tarea.alta .badge-prioridad {
+    background-color: #f8d7da;
+    color: #dc3545;
+  }
+  
+  .tarea.media .badge-prioridad {
+    background-color: #fff3cd;
+    color: #856404;
+  }
+  
+  .tarea.baja .badge-prioridad {
+    background-color: #d4edda;
+    color: #28a745;
+  }
+  
+  /* Botones */
+  .acciones-tarea {
+    display: flex;
+    gap: 10px;
+    align-self: center;
+  }
+  
+  .boton-completar {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .boton-detalles {
+    background-color: #17a2b8;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .boton-completar:hover {
+    background-color: #218838;
+  }
+  
+  .boton-detalles:hover {
+    background-color: #138496;
+  }

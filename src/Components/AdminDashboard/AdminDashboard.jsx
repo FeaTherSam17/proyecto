@@ -2,10 +2,11 @@ import { useState } from 'react';
 import UserManagement from './UserManagement';
 import ReportsPanel from './ReportsPanel';
 import SuppliersPanel from './SuppliersPanel';
+import TasksPanel from './TasksPanel';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
-  const [activeTab, setActiveTab] = useState('reports');
+  const [activeTab, setActiveTab] = useState('tasks'); // Vista por defecto: Tareas
 
   return (
     <div className="admin-container">
@@ -15,6 +16,12 @@ const AdminDashboard = () => {
           <h2>Panel Administrativo</h2>
         </div>
         <nav className="sidebar-nav">
+          <button 
+            className={activeTab === 'tasks' ? 'active' : ''}
+            onClick={() => setActiveTab('tasks')}
+          >
+            📋 Tareas
+          </button>
           <button 
             className={activeTab === 'reports' ? 'active' : ''}
             onClick={() => setActiveTab('reports')}
@@ -38,6 +45,7 @@ const AdminDashboard = () => {
 
       {/* Main Content */}
       <div className="admin-main">
+        {activeTab === 'tasks' && <TasksPanel />}
         {activeTab === 'reports' && <ReportsPanel />}
         {activeTab === 'suppliers' && <SuppliersPanel />}
         {activeTab === 'users' && <UserManagement />}
