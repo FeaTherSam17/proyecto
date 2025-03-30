@@ -5,7 +5,9 @@ import Jardinero from './Components/Jardinero/JardineroPanel';
 import './App.css';
 import CajeroPanel from './Components/Cajero/CajeroPanel';
 import AlmacenistaPanel from './Components/Almacenista/AlmacenistaPanel';
-/*
+import JardineroPanel from './Components/Jardinero/JardineroPanel';
+
+
 function App() {
   return (
     <Router>
@@ -15,16 +17,18 @@ function App() {
       </Routes>
     </Router>
   );
-}*/
+}
 
+
+/*
 function App() {
   return (
     <div className="App">
-      {/* Otros componentes que ya tengas */}
-      <AlmacenistaPanel />
+     
+      <JardineroPanel />
     </div>
   );
 }
-
+*/
 
 export default App;

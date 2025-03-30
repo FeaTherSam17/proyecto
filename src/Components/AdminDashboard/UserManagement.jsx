@@ -2,27 +2,27 @@ import { useState } from 'react';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([
-    { id: 1, name: 'Admin', email: 'admin@invernadero.com', role: 'Administrador' },
-    { id: 2, name: 'Carlos Gómez', email: 'carlos@invernadero.com', role: 'Jardinero' }
+    { id: 1, name: 'Admin', user: 'admin', role: 'Administrador' },
+    { id: 2, name: 'Carlos Gómez', user: 'carlos', role: 'Jardinero' }
   ]);
 
   const [newUser, setNewUser] = useState({
     name: '',
-    email: '',
+    user: '',
     role: 'Jardinero',
     password: ''
   });
 
   const addUser = (e) => {
     e.preventDefault();
-    if (!newUser.name || !newUser.email) return;
+    if (!newUser.name || !newUser.user) return;
 
     setUsers([...users, {
       id: Date.now(),
       ...newUser
     }]);
 
-    setNewUser({ name: '', email: '', role: 'Jardinero', password: '' });
+    setNewUser({ name: '', user: '', role: 'Jardinero', password: '' });
   };
 
   return (
@@ -44,10 +44,10 @@ const UserManagement = () => {
 
         <div className="form-group">
           <input
-            type="email"
-            placeholder="Correo electrónico"
-            value={newUser.email}
-            onChange={(e) => setNewUser({...newUser, email: e.target.value})}
+            type="text"
+            placeholder="Usuario"
+            value={newUser.user}
+            onChange={(e) => setNewUser({...newUser, user: e.target.value})}
             required
           />
         </div>
@@ -84,7 +84,7 @@ const UserManagement = () => {
           <thead>
             <tr>
               <th>Nombre</th>
-              <th>Email</th>
+              <th>User</th>
               <th>Rol</th>
             </tr>
           </thead>
@@ -92,7 +92,7 @@ const UserManagement = () => {
             {users.map(user => (
               <tr key={user.id}>
                 <td>{user.name}</td>
-                <td>{user.email}</td>
+                <td>{user.user}</td>
                 <td>{user.role}</td>
               </tr>
             ))}

@@ -241,3 +241,30 @@ td {
 .users-list th {
   background-color: #f5f7fa;
 }
+
+/* DISEÑO PARA EL BOTON DE CERRAR SESION */
+
+.logout-section {
+  padding: 15px;
+  margin-top: auto;
+  border-top: 1px solid #34495e;
+}
+
+.logout-btn {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition: background-color 0.3s;
+}
+
+.logout-btn:hover {
+  background-color: #c0392b;
+}

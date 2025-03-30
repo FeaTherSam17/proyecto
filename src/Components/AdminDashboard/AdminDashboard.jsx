@@ -6,7 +6,7 @@ import TasksPanel from './TasksPanel';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
-  const [activeTab, setActiveTab] = useState('tasks'); // Vista por defecto: Tareas
+  const [activeTab, setActiveTab] = useState('tasks');
 
   return (
     <div className="admin-container">
@@ -16,6 +16,12 @@ const AdminDashboard = () => {
           <h2>Panel Administrativo</h2>
         </div>
         <nav className="sidebar-nav">
+        <button 
+            className={activeTab === 'users' ? 'active' : ''}
+            onClick={() => setActiveTab('users')}
+          >
+            👥 Usuarios
+          </button>
           <button 
             className={activeTab === 'tasks' ? 'active' : ''}
             onClick={() => setActiveTab('tasks')}
@@ -34,13 +40,15 @@ const AdminDashboard = () => {
           >
             🚚 Proveedores
           </button>
-          <button 
-            className={activeTab === 'users' ? 'active' : ''}
-            onClick={() => setActiveTab('users')}
-          >
-            👥 Usuarios
-          </button>
+          
         </nav>
+        
+        {/* Botón de Cierre de Sesión */}
+        <div className="logout-section">
+          <button className="logout-btn">
+            <span role="img" aria-label="logout">👋</span> Cerrar Sesión
+          </button>
+        </div>
       </div>
 
       {/* Main Content */}

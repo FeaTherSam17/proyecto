@@ -90,10 +90,11 @@ const Login = () => {
             </div>
           </div>
 
-          {/* Botón de Ingreso */}
-          <button type="submit" className="login-button">
+          {/* Botón de Ingreso onClic debe ir dentro de la etuqueta para navengar  */}
+          <button type="submit" className="login-button" onClick={handleAdminAccess}>
             Ingresar al sistema
           </button>
+          
         </form>
 
         {/* Sección "Acerca de" */}
@@ -106,21 +107,7 @@ const Login = () => {
         </div>
       </div>
 
-//BOTON PROVISIONAL PARA NAVEGAR A ADMIN
-      <button 
-        onClick={handleAdminAccess}
-        style={{
-          marginTop: '20px',
-          padding: '10px 15px',
-          backgroundColor: '#4CAF50',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: 'pointer'
-        }}
-      >
-        Acceso Directo al Panel
-      </button>
+     
 
 
 
