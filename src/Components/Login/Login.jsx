@@ -53,7 +53,7 @@ const Login = () => {
             <input
               id="username"
               type="text"
-              placeholder="Ej: MiltonObsceno"
+              placeholder="Nombre de usuario"
               value={credentials.username}
               onChange={(e) => setCredentials({...credentials, username: e.target.value})}
               required
@@ -70,7 +70,7 @@ const Login = () => {
               <input
                 id="password"
                 type={showPassword ? "text" : "password"}
-                placeholder="Ej: P@ssw0rd123"
+                placeholder="Contraseña"
                 value={credentials.password}
                 onChange={(e) => setCredentials({...credentials, password: e.target.value})}
                 required

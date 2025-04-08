@@ -1,17 +1,13 @@
 import React, { useState } from 'react';
 import './AlmacenistaPanel.css';
+import logo from '../Login/assets/logo.png';
 
 const AlmacenistaPanel = () => {
   // Estados para el formulario de producto
   const [nuevoProducto, setNuevoProducto] = useState({
-    codigo: '',
     nombre: '',
-    categoria: 'Hortalizas',
+    categoria: 'plantas',
     precio: '',
-    costo: '',
-    stock: '',
-    stockMinimo: '',
-    unidadMedida: 'unidad',
     proveedor: ''
   });
 
@@ -19,24 +15,32 @@ const AlmacenistaPanel = () => {
   const [productos, setProductos] = useState([
     {
       id: 1,
-      codigo: 'PROD-001',
-      nombre: 'Tomate Cherry',
-      categoria: 'Hortalizas',
-      precio: 3.50,
-      costo: 1.80,
-      stock: 150,
-      stockMinimo: 30,
-      unidadMedida: 'kg',
-      proveedor: 'AgroFruits S.A.'
+      nombre: 'Suculenta Echeveria',
+      categoria: 'plantas',
+      precio: 8.50,
+      proveedor: 'Viveros Green'
     },
-    // ... más productos de ejemplo
+    {
+      id: 2,
+      nombre: 'Tijeras de Podar',
+      categoria: 'herramientas',
+      precio: 24.90,
+      proveedor: 'FerreJardín'
+    }
   ]);
 
-  // Estados para búsqueda y filtros
+  // Estados para proveedores
+  const [proveedores] = useState([
+    'Viveros Green',
+    'FerreJardín',
+    'Insumos Agrícolas',
+    'Plantas del Valle'
+  ]);
+
+  // Estados para búsqueda
   const [busqueda, setBusqueda] = useState('');
   const [categoriaFiltro, setCategoriaFiltro] = useState('todas');
 
-  // Manejar cambios en el formulario
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNuevoProducto({
@@ -45,74 +49,60 @@ const AlmacenistaPanel = () => {
     });
   };
 
-  // Agregar nuevo producto
   const agregarProducto = (e) => {
     e.preventDefault();
     
-    // Validación básica
-    if (!nuevoProducto.nombre || !nuevoProducto.precio || !nuevoProducto.stock) {
+    if (!nuevoProducto.nombre || !nuevoProducto.precio) {
       alert('Por favor complete los campos obligatorios');
       return;
     }
 
     const producto = {
       id: productos.length + 1,
-      codigo: nuevoProducto.codigo || `PROD-${(productos.length + 1).toString().padStart(3, '0')}`,
-      ...nuevoProducto,
+      nombre: nuevoProducto.nombre,
+      categoria: nuevoProducto.categoria,
       precio: parseFloat(nuevoProducto.precio),
-      costo: parseFloat(nuevoProducto.costo) || 0,
-      stock: parseInt(nuevoProducto.stock),
-      stockMinimo: parseInt(nuevoProducto.stockMinimo) || 0
+      proveedor: nuevoProducto.proveedor || 'Sin proveedor'
     };
 
     setProductos([...productos, producto]);
-    
-    // Resetear formulario
     setNuevoProducto({
-      codigo: '',
       nombre: '',
-      categoria: 'Hortalizas',
+      categoria: 'plantas',
       precio: '',
-      costo: '',
-      stock: '',
-      stockMinimo: '',
-      unidadMedida: 'unidad',
       proveedor: ''
     });
   };
 
-  // Filtrar productos
   const productosFiltrados = productos.filter(producto => {
-    const coincideBusqueda = producto.nombre.toLowerCase().includes(busqueda.toLowerCase()) || 
-                            producto.codigo.toLowerCase().includes(busqueda.toLowerCase());
+    const coincideBusqueda = producto.nombre.toLowerCase().includes(busqueda.toLowerCase());
     const coincideCategoria = categoriaFiltro === 'todas' || producto.categoria === categoriaFiltro;
     return coincideBusqueda && coincideCategoria;
   });
 
-  // Categorías únicas para el filtro
-  const categorias = ['todas', ...new Set(productos.map(p => p.categoria))];
+  // Función para cerrar sesión
+  const handleLogout = () => {
+    console.log("Sesión cerrada");
+    // Aquí iría la lógica real para cerrar sesión
+  };
 
   return (
     <div className="almacenista-panel">
-      <h1>Gestión de Inventario</h1>
+      {/* Botón flotante de cerrar sesión */}
+      <button className="floating-logout-btn" onClick={handleLogout} title="Cerrar sesión">
+        <span className="logout-icon">⎋</span>
+      </button>
+
+      <header className="panel-header">
+        <img src={logo} alt="GreenHouse Logo" className="panel-logo" />
+        <h1>GreenHouse - Gestión de Inventario</h1>
+      </header>
       
       <div className="panel-container">
-        {/* Formulario para agregar productos */}
         <div className="formulario-section">
           <h2>Registrar Nuevo Producto</h2>
           
           <form onSubmit={agregarProducto} className="producto-form">
-            <div className="form-group">
-              <label>Código:</label>
-              <input
-                type="text"
-                name="codigo"
-                value={nuevoProducto.codigo}
-                onChange={handleInputChange}
-                placeholder="Auto-generado si se deja vacío"
-              />
-            </div>
-            
             <div className="form-group">
               <label>Nombre*:</label>
               <input
@@ -131,106 +121,49 @@ const AlmacenistaPanel = () => {
                 value={nuevoProducto.categoria}
                 onChange={handleInputChange}
               >
-                <option value="Hortalizas">Hortalizas</option>
-                <option value="Frutas">Frutas</option>
-                <option value="Flores">Flores</option>
-                <option value="Insumos">Insumos</option>
-                <option value="Herramientas">Herramientas</option>
+                <option value="plantas">Plantas</option>
+                <option value="herramientas">Herramientas</option>
               </select>
             </div>
             
-            <div className="form-row">
-              <div className="form-group">
-                <label>Precio*:</label>
-                <input
-                  type="number"
-                  name="precio"
-                  value={nuevoProducto.precio}
-                  onChange={handleInputChange}
-                  min="0"
-                  step="0.01"
-                  required
-                />
-              </div>
-              
-              <div className="form-group">
-                <label>Costo:</label>
-                <input
-                  type="number"
-                  name="costo"
-                  value={nuevoProducto.costo}
-                  onChange={handleInputChange}
-                  min="0"
-                  step="0.01"
-                />
-              </div>
+            <div className="form-group">
+              <label>Precio*:</label>
+              <input
+                type="number"
+                name="precio"
+                value={nuevoProducto.precio}
+                onChange={handleInputChange}
+                min="0"
+                step="0.01"
+                required
+              />
             </div>
             
-            <div className="form-row">
-              <div className="form-group">
-                <label>Stock*:</label>
-                <input
-                  type="number"
-                  name="stock"
-                  value={nuevoProducto.stock}
-                  onChange={handleInputChange}
-                  min="0"
-                  required
-                />
-              </div>
-              
-              <div className="form-group">
-                <label>Stock Mínimo:</label>
-                <input
-                  type="number"
-                  name="stockMinimo"
-                  value={nuevoProducto.stockMinimo}
-                  onChange={handleInputChange}
-                  min="0"
-                />
-              </div>
-            </div>
-            
-            <div className="form-row">
-              <div className="form-group">
-                <label>Unidad de Medida:</label>
-                <select
-                  name="unidadMedida"
-                  value={nuevoProducto.unidadMedida}
-                  onChange={handleInputChange}
-                >
-                  <option value="unidad">Unidad</option>
-                  <option value="kg">Kilogramo</option>
-                  <option value="g">Gramo</option>
-                  <option value="L">Litro</option>
-                  <option value="ml">Mililitro</option>
-                  <option value="paquete">Paquete</option>
-                </select>
-              </div>
-              
-              <div className="form-group">
-                <label>Proveedor:</label>
-                <input
-                  type="text"
-                  name="proveedor"
-                  value={nuevoProducto.proveedor}
-                  onChange={handleInputChange}
-                />
-              </div>
+            <div className="form-group">
+              <label>Proveedor:</label>
+              <select
+                name="proveedor"
+                value={nuevoProducto.proveedor}
+                onChange={handleInputChange}
+              >
+                <option value="">Seleccione proveedor</option>
+                {proveedores.map((proveedor, index) => (
+                  <option key={index} value={proveedor}>{proveedor}</option>
+                ))}
+              </select>
             </div>
             
             <button type="submit" className="guardar-btn">Registrar Producto</button>
           </form>
         </div>
         
-        {/* Lista de productos */}
         <div className="lista-section">
           <h2>Inventario de Productos</h2>
           
           <div className="filtros">
             <input
               type="text"
-              placeholder="Buscar por nombre o código..."
+              placeholder="Buscar por nombre..."
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
               className="busqueda-input"
@@ -241,11 +174,9 @@ const AlmacenistaPanel = () => {
               onChange={(e) => setCategoriaFiltro(e.target.value)}
               className="categoria-select"
             >
-              {categorias.map(categoria => (
-                <option key={categoria} value={categoria}>
-                  {categoria === 'todas' ? 'Todas' : categoria}
-                </option>
-              ))}
+              <option value="todas">Todas las categorías</option>
+              <option value="plantas">Plantas</option>
+              <option value="herramientas">Herramientas</option>
             </select>
           </div>
           
@@ -253,40 +184,28 @@ const AlmacenistaPanel = () => {
             <table className="productos-table">
               <thead>
                 <tr>
-                  <th>Código</th>
+                  <th>ID</th>
                   <th>Nombre</th>
                   <th>Categoría</th>
                   <th>Precio</th>
-                  <th>Stock</th>
-                  <th>Estado</th>
+                  <th>Proveedor</th>
                 </tr>
               </thead>
               <tbody>
                 {productosFiltrados.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className="no-resultados">No se encontraron productos</td>
+                    <td colSpan="5" className="no-resultados">No se encontraron productos</td>
                   </tr>
                 ) : (
                   productosFiltrados.map(producto => (
                     <tr key={producto.id}>
-                      <td>{producto.codigo}</td>
+                      <td>{producto.id}</td>
                       <td>{producto.nombre}</td>
-                      <td>{producto.categoria}</td>
+                      <td className={`categoria-${producto.categoria}`}>
+                        {producto.categoria === 'plantas' ? '🌱 Plantas' : '🛠️ Herramientas'}
+                      </td>
                       <td>${producto.precio.toFixed(2)}</td>
-                      <td>
-                        <span className={`stock ${producto.stock <= producto.stockMinimo ? 'bajo' : ''}`}>
-                          {producto.stock} {producto.unidadMedida}
-                        </span>
-                      </td>
-                      <td>
-                        {producto.stock === 0 ? (
-                          <span className="estado agotado">Agotado</span>
-                        ) : producto.stock <= producto.stockMinimo ? (
-                          <span className="estado bajo">Stock Bajo</span>
-                        ) : (
-                          <span className="estado disponible">Disponible</span>
-                        )}
-                      </td>
+                      <td>{producto.proveedor}</td>
                     </tr>
                   ))
                 )}
@@ -296,20 +215,25 @@ const AlmacenistaPanel = () => {
           
           <div className="resumen-inventario">
             <div className="resumen-item">
-              <span>Productos registrados:</span>
+              <span>Total productos:</span>
               <span>{productos.length}</span>
             </div>
             <div className="resumen-item">
-              <span>Productos con stock bajo:</span>
-              <span>{productos.filter(p => p.stock <= p.stockMinimo).length}</span>
+              <span>Plantas:</span>
+              <span>{productos.filter(p => p.categoria === 'plantas').length}</span>
             </div>
             <div className="resumen-item">
-              <span>Productos agotados:</span>
-              <span>{productos.filter(p => p.stock === 0).length}</span>
+              <span>Herramientas:</span>
+              <span>{productos.filter(p => p.categoria === 'herramientas').length}</span>
             </div>
           </div>
         </div>
       </div>
+      
+      <footer className="panel-footer">
+        <img src={logo} alt="GreenHouse Logo" className="footer-logo" />
+        <p>© {new Date().getFullYear()} GreenHouse</p>
+      </footer>
     </div>
   );
 };

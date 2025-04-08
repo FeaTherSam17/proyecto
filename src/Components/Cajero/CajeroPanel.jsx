@@ -1,15 +1,28 @@
 import React, { useState } from 'react';
 import './CajeroPanel.css';
+import logo from '../Login/assets/logo.png';
 
 const CajeroPanel = () => {
+  // Datos del empleado (simulados)
+  const empleado = {
+    puesto: "Cajero"
+  };
+
   // Estado para los productos disponibles
   const [productos] = useState([
-    { id: 1, nombre: 'Tomates (kg)', precio: 2.50, categoria: 'Hortalizas' },
-    { id: 2, nombre: 'Lechuga', precio: 1.80, categoria: 'Hortalizas' },
-    { id: 3, nombre: 'Rosas (docena)', precio: 8.00, categoria: 'Flores' },
-    { id: 4, nombre: 'Maceta pequeña', precio: 5.50, categoria: 'Accesorios' },
-    { id: 5, nombre: 'Fertilizante', precio: 12.00, categoria: 'Insumos' },
+    { id_producido: 1, nombre: 'Tomate Cherry', precio: 3.50, id_categoria: 1 },
+    { id_producido: 2, nombre: 'Rosal', precio: 15.00, id_categoria: 3 },
+    { id_producido: 3, nombre: 'Tijeras de Podar', precio: 24.90, id_categoria: 4 },
+    { id_producido: 4, nombre: 'Fertilizante', precio: 12.00, id_categoria: 4 }
   ]);
+
+  // Categorías
+  const categorias = [
+    { id_categoria: 1, nombre: 'Plantas' },
+    { id_categoria: 2, nombre: 'Frutas' },
+    { id_categoria: 3, nombre: 'Flores' },
+    { id_categoria: 4, nombre: 'Herramientas' }
+  ];
 
   // Estado para la venta en curso
   const [ventaActual, setVentaActual] = useState({
@@ -17,21 +30,25 @@ const CajeroPanel = () => {
     subtotal: 0,
     descuento: 0,
     total: 0,
-    metodoPago: 'efectivo',
-    cliente: ''
+    metodoPago: 'efectivo'
   });
 
   // Estado para búsqueda y filtros
   const [busqueda, setBusqueda] = useState('');
   const [categoriaFiltro, setCategoriaFiltro] = useState('todas');
 
+  // Obtener nombre de categoría
+  const getCategoriaNombre = (id) => {
+    return categorias.find(c => c.id_categoria === id)?.nombre || 'Sin categoría';
+  };
+
   // Agregar producto a la venta
   const agregarProducto = (producto) => {
-    const itemExistente = ventaActual.items.find(item => item.id === producto.id);
+    const itemExistente = ventaActual.items.find(item => item.id_producido === producto.id_producido);
     
     if (itemExistente) {
       const itemsActualizados = ventaActual.items.map(item =>
-        item.id === producto.id 
+        item.id_producido === producto.id_producido 
           ? { ...item, cantidad: item.cantidad + 1, total: item.precio * (item.cantidad + 1) }
           : item
       );
@@ -51,7 +68,7 @@ const CajeroPanel = () => {
     if (nuevaCantidad < 1) return;
     
     const itemsActualizados = ventaActual.items.map(item =>
-      item.id === id 
+      item.id_producido === id 
         ? { ...item, cantidad: nuevaCantidad, total: item.precio * nuevaCantidad }
         : item
     );
@@ -60,7 +77,7 @@ const CajeroPanel = () => {
 
   // Eliminar producto de la venta
   const eliminarProducto = (id) => {
-    const itemsActualizados = ventaActual.items.filter(item => item.id !== id);
+    const itemsActualizados = ventaActual.items.filter(item => item.id_producido !== id);
     actualizarVenta(itemsActualizados);
   };
 
@@ -93,54 +110,102 @@ const CajeroPanel = () => {
   // Filtrar productos
   const productosFiltrados = productos.filter(producto => {
     const coincideBusqueda = producto.nombre.toLowerCase().includes(busqueda.toLowerCase());
-    const coincideCategoria = categoriaFiltro === 'todas' || producto.categoria === categoriaFiltro;
+    const coincideCategoria = categoriaFiltro === 'todas' || 
+      getCategoriaNombre(producto.id_categoria) === categoriaFiltro;
     return coincideBusqueda && coincideCategoria;
   });
 
   // Categorías únicas para el filtro
-  const categorias = ['todas', ...new Set(productos.map(p => p.categoria))];
+  const categoriasFiltro = ['todas', ...categorias.map(c => c.nombre)];
+
+  // Finalizar venta
+  const finalizarVenta = () => {
+    const nuevaVenta = {
+      fecha: new Date().toISOString().split('T')[0],
+      total: ventaActual.total,
+      metodoPago: ventaActual.metodoPago,
+      items: ventaActual.items.map(item => ({
+        id_producido: item.id_producido,
+        cantidad: item.cantidad,
+        precio_unitario: item.precio,
+        total: item.total
+      }))
+    };
+    
+    console.log('Venta a guardar:', nuevaVenta);
+    
+    // Resetear venta
+    setVentaActual({
+      items: [],
+      subtotal: 0,
+      descuento: 0,
+      total: 0,
+      metodoPago: 'efectivo'
+    });
+    
+    alert('Venta registrada exitosamente');
+  };
+
+  // Cerrar sesión
+  const handleLogout = () => {
+    console.log("Sesión cerrada");
+  };
 
   return (
     <div className="cajero-panel">
-      <h1>Registro de Ventas</h1>
+      {/* Botón flotante de cerrar sesión */}
+      <button className="floating-logout-btn" onClick={handleLogout} title="Cerrar sesión">
+        <span className="logout-icon">⎋</span>
+      </button>
+
+      <header className="panel-header">
+        <div className="header-content">
+          <img src={logo} alt="GreenHouse Logo" className="panel-logo" />
+          <div className="user-info">
+            <h1>Punto de Venta</h1>
+            <p className="saludo">Modo Cajero</p>
+          </div>
+        </div>
+      </header>
       
       <div className="panel-container">
         {/* Sección de productos */}
         <div className="productos-section">
-          <h2>Productos Disponibles</h2>
-          
-          <div className="filtros">
-            <input
-              type="text"
-              placeholder="Buscar producto..."
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-              className="busqueda-input"
-            />
-            
-            <select
-              value={categoriaFiltro}
-              onChange={(e) => setCategoriaFiltro(e.target.value)}
-              className="categoria-select"
-            >
-              {categorias.map(categoria => (
-                <option key={categoria} value={categoria}>
-                  {categoria.charAt(0).toUpperCase() + categoria.slice(1)}
-                </option>
-              ))}
-            </select>
+          <div className="section-header">
+            <h2>Productos Disponibles</h2>
+            <div className="filtros">
+              <input
+                type="text"
+                placeholder="Buscar producto..."
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                className="busqueda-input"
+              />
+              
+              <select
+                value={categoriaFiltro}
+                onChange={(e) => setCategoriaFiltro(e.target.value)}
+                className="categoria-select"
+              >
+                {categoriasFiltro.map(categoria => (
+                  <option key={categoria} value={categoria}>
+                    {categoria}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
           
           <div className="productos-grid">
             {productosFiltrados.map(producto => (
               <div 
-                key={producto.id} 
+                key={producto.id_producido} 
                 className="producto-card"
                 onClick={() => agregarProducto(producto)}
               >
                 <h3>{producto.nombre}</h3>
                 <p className="precio">${producto.precio.toFixed(2)}</p>
-                <p className="categoria">{producto.categoria}</p>
+                <p className="categoria">{getCategoriaNombre(producto.id_categoria)}</p>
               </div>
             ))}
           </div>
@@ -149,16 +214,6 @@ const CajeroPanel = () => {
         {/* Sección de venta actual */}
         <div className="venta-section">
           <h2>Venta Actual</h2>
-          
-          <div className="cliente-input">
-            <label>Cliente:</label>
-            <input
-              type="text"
-              placeholder="Nombre del cliente (opcional)"
-              value={ventaActual.cliente}
-              onChange={(e) => setVentaActual({...ventaActual, cliente: e.target.value})}
-            />
-          </div>
           
           <div className="items-venta">
             {ventaActual.items.length === 0 ? (
@@ -176,21 +231,21 @@ const CajeroPanel = () => {
                 </thead>
                 <tbody>
                   {ventaActual.items.map(item => (
-                    <tr key={item.id}>
+                    <tr key={item.id_producido}>
                       <td>{item.nombre}</td>
                       <td>
                         <input
                           type="number"
                           min="1"
                           value={item.cantidad}
-                          onChange={(e) => actualizarCantidad(item.id, parseInt(e.target.value))}
+                          onChange={(e) => actualizarCantidad(item.id_producido, parseInt(e.target.value))}
                         />
                       </td>
                       <td>${item.precio.toFixed(2)}</td>
                       <td>${item.total.toFixed(2)}</td>
                       <td>
                         <button 
-                          onClick={() => eliminarProducto(item.id)}
+                          onClick={() => eliminarProducto(item.id_producido)}
                           className="eliminar-btn"
                         >
                           ×
@@ -240,8 +295,25 @@ const CajeroPanel = () => {
           </div>
           
           <div className="acciones-venta">
-            <button className="cancelar-btn">Cancelar</button>
-            <button className="finalizar-btn">Finalizar Venta</button>
+            <button 
+              className="cancelar-btn"
+              onClick={() => setVentaActual({
+                items: [],
+                subtotal: 0,
+                descuento: 0,
+                total: 0,
+                metodoPago: 'efectivo'
+              })}
+            >
+              Cancelar
+            </button>
+            <button 
+              className="finalizar-btn"
+              onClick={finalizarVenta}
+              disabled={ventaActual.items.length === 0}
+            >
+              Finalizar Venta
+            </button>
           </div>
         </div>
       </div>

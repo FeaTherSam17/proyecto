@@ -1,0 +1,309 @@
+/* Variables de diseño */
+:root {
+    --primary-color: #2e7d32;
+    --primary-light: #4caf50;
+    --secondary-color: #1565c0;
+    --error-color: #d32f2f;
+    --warning-color: #ed6c02;
+    --background: #f5f7fa;
+    --card-bg: #ffffff;
+    --text-color: #333333;
+    --text-light: #666666;
+    --border-color: #e0e0e0;
+    --shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  }
+  
+  /* Estructura principal */
+  .reports-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
+    background-color: var(--background);
+    min-height: 100vh;
+  }
+  
+  .reports-header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  .reports-header h1 {
+    color: var(--primary-color);
+    font-size: 2rem;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  
+  .reports-header p {
+    color: var(--text-light);
+    font-size: 1rem;
+  }
+  
+  .reports-content {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 25px;
+  }
+  
+  @media (max-width: 1000px) {
+    .reports-content {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  /* Panel de controles */
+  .controls-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+  }
+  
+  .report-type-selector, .date-range-selector {
+    background: var(--card-bg);
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+  }
+  
+  .report-type-selector h2, .date-range-selector h2 {
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+    color: var(--text-color);
+  }
+  
+  .report-tabs {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .report-tabs button {
+    padding: 10px 15px;
+    border: none;
+    background: #f5f5f5;
+    border-radius: 6px;
+    cursor: pointer;
+    text-align: left;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+  }
+  
+  .report-tabs button:hover {
+    background: #eeeeee;
+  }
+  
+  .report-tabs button.active {
+    background: var(--primary-color);
+    color: white;
+    font-weight: 500;
+  }
+  
+  .date-inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .form-group label {
+    font-size: 0.85rem;
+    color: var(--text-light);
+  }
+  
+  .form-group input {
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 0.9rem;
+  }
+  
+  .form-group input:focus {
+    outline: none;
+    border-color: var(--primary-light);
+  }
+  
+  .summary-cards {
+    background: var(--card-bg);
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+  }
+  
+  .summary-card h3 {
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+    color: var(--text-color);
+  }
+  
+  .summary-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 0.9rem;
+  }
+  
+  .summary-item .amount {
+    font-weight: 500;
+    color: var(--primary-color);
+  }
+  
+  .generate-report-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-top: 10px;
+  }
+  
+  .generate-report-btn:hover {
+    background-color: var(--primary-light);
+  }
+  
+  /* Panel de datos */
+  .data-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .data-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  
+  .data-header h2 {
+    font-size: 1.3rem;
+    color: var(--text-color);
+  }
+  
+  .export-btn {
+    background: none;
+    border: 1px solid var(--primary-color);
+    color: var(--primary-color);
+    padding: 8px 15px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .export-btn:hover {
+    background: rgba(76, 175, 80, 0.1);
+  }
+  
+  .data-table-container {
+    background: var(--card-bg);
+    border-radius: 8px;
+    padding: 1px;
+    box-shadow: var(--shadow);
+    overflow-x: auto;
+  }
+  
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+  
+  .data-table th {
+    background-color: #f5f5f5;
+    padding: 12px 15px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-light);
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  .data-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  .data-table tr:last-child td {
+    border-bottom: none;
+  }
+  
+  .data-table tr:hover {
+    background-color: #f9f9f9;
+  }
+  
+  .data-table tr.venta {
+    background-color: #e8f5e9;
+  }
+  
+  .data-table tr.compra {
+    background-color: #e3f2fd;
+  }
+  
+  .data-table tr.devolución {
+    background-color: #ffebee;
+  }
+  
+  .no-data-message {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-light);
+    font-size: 0.95rem;
+  }
+  
+  /* Gráficos */
+  .charts-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 20px;
+  }
+  
+  .chart-card {
+    background: var(--card-bg);
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+  }
+  
+  .chart-card h3 {
+    font-size: 1rem;
+    margin-bottom: 15px;
+    color: var(--text-color);
+  }
+  
+  .chart-placeholder {
+    height: 250px;
+    background: #f9f9f9;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-light);
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px) {
+    .charts-container {
+      grid-template-columns: 1fr;
+    }
+    
+    .data-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+  }
