@@ -1,50 +1,90 @@
 import { useState } from 'react';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import { useNavigate } from 'react-router-dom';
 import './Login.css';
 import logo from './assets/logo.png';
 
-import { useNavigate } from 'react-router-dom'; //CODIGO PARA NAGEAR PROVISIONAL|
-
 const Login = () => {
-
-  //////////////////////PROVISIONAL PARA NAVEGAR A ADMIN///////////////////////
-  const navigate = useNavigate();
-
-  const handleAdminAccess = () => {
-    navigate('/admin');
-  };
-    ////////////////////////////////////////////////
-
   const [showPassword, setShowPassword] = useState(false);
   const [credentials, setCredentials] = useState({
-    username: '',
+    username: '',  // Asegúrate de usar "username" aquí, no "usuario"
     password: ''
   });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Login attempt:', credentials);
-    // Lógica de autenticación aquí
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch('http://localhost:3001/login', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          username: credentials.username,  // Aquí debe coincidir con "username" del servidor
+          password: credentials.password
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error en la autenticación');
+      }
+
+      const data = await response.json();
+      if (data.success) {
+        // Guardar usuario en localStorage
+        localStorage.setItem('user', JSON.stringify(data.user));
+
+        // Redirección basada en el rol
+        switch (data.user.role) {
+          case 1:
+            navigate('/AdminDashboard');
+            break;
+          case 2:
+            navigate('/Almacenista');
+            break;
+          case 3:
+            navigate('/Cajero');
+            break;
+          case 4:
+            navigate('/Jardinero');
+            break;
+          default:
+            setError('Rol no reconocido');
+        }
+      } else {
+        setError(data.error || 'Error de autenticación');
+      }
+    } catch (err) {
+      setError(err.message.includes('Failed to fetch') 
+        ? 'No se pudo conectar al servidor' 
+        : err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="login-container">
       <div className="login-card">
-        {/* Encabezado con logo */}
         <div className="login-header">
           <div className="logo-container">
-            <img 
-              src={logo} 
-              alt="Logo de la empresa" 
-              className="logo"
-            />
+            <img src={logo} alt="Logo" className="logo" />
             <h1>GreenHouse Portal</h1>
           </div>
         </div>
 
-        {/* Formulario */}
         <form onSubmit={handleSubmit} className="login-form">
-          {/* Campo Usuario */}
+          {error && <div className="error-message">{error}</div>}
+          
           <div className="input-group">
             <label htmlFor="username">
               <span className="input-icon">👤</span>
@@ -54,13 +94,16 @@ const Login = () => {
               id="username"
               type="text"
               placeholder="Nombre de usuario"
-              value={credentials.username}
-              onChange={(e) => setCredentials({...credentials, username: e.target.value})}
+              value={credentials.username}  // Usa "username" en lugar de "usuario"
+              onChange={(e) => setCredentials({
+                ...credentials,
+                username: e.target.value.trim()  // Actualiza "username" aquí
+              })}
               required
+              autoComplete="username"
             />
           </div>
 
-          {/* Campo Contraseña */}
           <div className="input-group">
             <label htmlFor="password">
               <span className="input-icon">🔒</span>
@@ -72,14 +115,18 @@ const Login = () => {
                 type={showPassword ? "text" : "password"}
                 placeholder="Contraseña"
                 value={credentials.password}
-                onChange={(e) => setCredentials({...credentials, password: e.target.value})}
+                onChange={(e) => setCredentials({
+                  ...credentials,
+                  password: e.target.value
+                })}
                 required
+                autoComplete="current-password"
               />
               <button 
                 type="button" 
                 className="toggle-password"
                 onClick={() => setShowPassword(!showPassword)}
-                aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
               >
                 {showPassword ? (
                   <EyeSlashIcon className="eye-icon" />
@@ -90,27 +137,24 @@ const Login = () => {
             </div>
           </div>
 
-          {/* Botón de Ingreso onClic debe ir dentro de la etuqueta para navengar  */}
-          <button type="submit" className="login-button" onClick={handleAdminAccess}>
-            Ingresar al sistema
+          <button 
+            type="submit" 
+            className="login-button" 
+            disabled={loading}
+            aria-busy={loading}
+          >
+            {loading ? 'Verificando...' : 'Ingresar al sistema'}
           </button>
-          
         </form>
 
-        {/* Sección "Acerca de" */}
         <div className="about-section">
           <div className="about-content">
             <h3>Acerca del sistema</h3>
-            <p>Versión 1.0 - Sistema de administración para invernaderos</p>
+            <p>Versión 2.0 - Sistema de administración para invernaderos</p>
             <p>© {new Date().getFullYear()} Todos los derechos reservados</p>
           </div>
         </div>
       </div>
-
-     
-
-
-
     </div>
   );
 };

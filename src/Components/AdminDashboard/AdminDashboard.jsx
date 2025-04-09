@@ -12,6 +12,7 @@ const AdminDashboard = () => {
   const handleLogout = () => {
     console.log("Sesión cerrada");
     // Aquí iría la lógica para cerrar sesión
+    
   };
 
   return (

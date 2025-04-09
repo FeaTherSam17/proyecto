@@ -29,6 +29,7 @@
     flex-direction: column;
     align-items: center;
     gap: 15px;
+    
   }
   
   .logo {
@@ -38,7 +39,7 @@
   }
   
   .logo-container h1 {
-    color: white;
+    color: #ffffff;
     font-size: 1.8rem;
     margin: 0;
     font-weight: 600;
