@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';  // Importa useNavigate
 import UserManagement from './UserManagement';
 import ReportsPanel from './ReportsPanel';
 import SuppliersPanel from './SuppliersPanel';
@@ -8,11 +9,17 @@ import './AdminDashboard.css';
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('users');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  
+  const navigate = useNavigate(); // Crea el hook de navegación
 
   const handleLogout = () => {
     console.log("Sesión cerrada");
-    // Aquí iría la lógica para cerrar sesión
+
+    // Elimina los datos del usuario del localStorage
+    localStorage.removeItem('user');
     
+    // Redirige al login
+    navigate('/');
   };
 
   return (

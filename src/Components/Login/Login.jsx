@@ -43,7 +43,13 @@ const Login = () => {
         // Guardar usuario en localStorage
         localStorage.setItem('user', JSON.stringify(data.user));
 
-        // Redirección basada en el rol
+        // Switch que determina a donde se redirige al usuario según su rol dado por un numero
+        /*
+        1. Admin
+        2. Almacenista
+        3. Cajero
+        4. Jardinero
+        */
         switch (data.user.role) {
           case 1:
             navigate('/AdminDashboard');
@@ -150,7 +156,7 @@ const Login = () => {
         <div className="about-section">
           <div className="about-content">
             <h3>Acerca del sistema</h3>
-            <p>Versión 2.0 - Sistema de administración para invernaderos</p>
+            <p>Versión 2.1.2 - Sistema de administración para invernaderos</p>
             <p>© {new Date().getFullYear()} Todos los derechos reservados</p>
           </div>
         </div>
