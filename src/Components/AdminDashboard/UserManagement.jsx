@@ -1,88 +1,96 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './UserManagement.css';
 
 const UserManagement = () => {
-  const [users, setUsers] = useState([
-    { 
-      id: 1, 
-      nombre: 'Monito', 
-      apellidoPat: 'Jumento', 
-      apellidoMat: 'Flores', 
-      username: 'monito', 
-      role: 'Jardinero', 
-      password: 'monito123', 
-      status: 'Activo' 
-    },
-    { 
-      id: 2, 
-      nombre: 'Usuario', 
-      apellidoPat: 'Gómez', 
-      apellidoMat: 'López', 
-      username: 'usuario', 
-      role: 'Cajero', 
-      password: 'usuario456', 
-      status: 'Activo' 
-    },
-    { 
-      id: 3, 
-      nombre: 'RUVM', 
-      apellidoPat: 'Vargas', 
-      apellidoMat: 'Méndez', 
-      username: 'ruvm', 
-      role: 'Almacenista', 
-      password: 'ruvm789', 
-      status: 'Activo' 
-    }
-  ]);
-
+  const [users, setUsers] = useState([]);
   const [newUser, setNewUser] = useState({
     nombre: '',
     apellidoPat: '',
     apellidoMat: '',
     username: '',
-    role: 'Jardinero',
-    password: '',
-    status: 'Activo'
+    role: 4,  // El valor por defecto es 'Jardinero' (equivalente al rol 4)
+    password: ''
   });
-
   const [searchTerm, setSearchTerm] = useState('');
 
-  const addUser = (e) => {
+  // Cargar usuarios del backend al cargar el componente
+  useEffect(() => {
+    fetch('http://localhost:3001/usuarios')
+      .then(response => response.json())
+      .then(data => setUsers(data))
+      .catch(error => console.error('Error al cargar usuarios:', error));
+  }, []);
+
+  // Función para agregar un nuevo usuario
+  const addUser = async (e) => {
     e.preventDefault();
-    if (!newUser.nombre || !newUser.apellidoPat || !newUser.username || !newUser.password) return;
 
-    setUsers([...users, {
-      id: Date.now(),
-      ...newUser
-    }]);
+    // Verifica que los campos obligatorios estén presentes
+    if (!newUser.nombre || !newUser.apellidoPat || !newUser.username || !newUser.password || !newUser.role || newUser.role === 1) return;
 
-    setNewUser({ 
-      nombre: '', 
-      apellidoPat: '', 
-      apellidoMat: '', 
-      username: '', 
-      role: 'Jardinero', 
-      password: '', 
-      status: 'Activo' 
-    });
+    try {
+      const response = await fetch('http://localhost:3001/usuarios', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(newUser)
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Recargar usuarios desde el backend actualizado
+        const updatedUsers = await fetch('http://localhost:3001/usuarios').then(res => res.json());
+        setUsers(updatedUsers);
+
+        // Limpiar el formulario después de agregar el usuario
+        setNewUser({
+          nombre: '',
+          apellidoPat: '',
+          apellidoMat: '',
+          username: '',
+          role: 4,  // Asumiendo que '4' es 'Jardinero'
+          password: '',
+        });
+      } else {
+        alert(result.error || 'Error al crear usuario');
+      }
+    } catch (error) {
+      console.error('Error al registrar usuario:', error);
+    }
   };
 
-  const deleteUser = (id) => {
-    setUsers(users.filter(user => user.id !== id));
+  // Eliminar usuario
+  const deleteUser = async (id) => {
+    if (window.confirm('¿Estás seguro de eliminar este usuario?')) {
+      try {
+        const res = await fetch(`http://localhost:3001/usuarios/${id}`, { method: 'DELETE' });
+        const result = await res.json();
+        if (result.success) {
+          setUsers(users.filter(user => user.ID !== id));
+        }
+      } catch (error) {
+        console.error('Error al eliminar usuario:', error);
+      }
+    }
   };
 
-  const toggleStatus = (id) => {
-    setUsers(users.map(user => 
-      user.id === id 
-        ? { ...user, status: user.status === 'Activo' ? 'Inactivo' : 'Activo' } 
-        : user
-    ));
+  // Función para formatear la fecha en dd/mm/yyyy
+  const formatDate = (dateStr) => {
+    const date = new Date(dateStr);
+    const day = ('0' + date.getDate()).slice(-2); // Formatear el día con dos dígitos
+    const month = ('0' + (date.getMonth() + 1)).slice(-2); // Formatear el mes con dos dígitos
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
   };
+  
 
+  // Filtrar usuarios según el término de búsqueda
   const filteredUsers = users.filter(user =>
-    `${user.nombre} ${user.apellidoPat} ${user.apellidoMat}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.role.toLowerCase().includes(searchTerm.toLowerCase())
+    `${user['Nombre Completo']}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.Usuario.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.Rol.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -148,20 +156,21 @@ const UserManagement = () => {
                   <label>Rol*</label>
                   <select
                     value={newUser.role}
-                    onChange={(e) => setNewUser({...newUser, role: e.target.value})}
+                    onChange={(e) => setNewUser({...newUser, role: parseInt(e.target.value)})}  // Cambié a número
                     required
                   >
-                    <option value="Jardinero">Jardinero</option>
-                    <option value="Cajero">Cajero</option>
-                    <option value="Almacenista">Almacenista</option>
+                    <option value={4}>Jardinero</option>
+                    <option value={3}>Cajero</option>
+                    <option value={2}>Almacenista</option>
+                    {/* Eliminé la opción de Admin */}
                   </select>
                 </div>
 
                 <div className="form-group">
                   <label>Contraseña*</label>
                   <input
-                    type="text"
-                    placeholder="Contraseña "
+                    type="password"
+                    placeholder="Contraseña"
                     value={newUser.password}
                     onChange={(e) => setNewUser({...newUser, password: e.target.value})}
                     required
@@ -195,65 +204,38 @@ const UserManagement = () => {
             <table className="users-table">
               <thead>
                 <tr>
+                  <th>ID</th>
                   <th>Nombre Completo</th>
-                  <th>Usuario</th>
                   <th>Rol</th>
+                  <th>Usuario</th>
                   <th>Contraseña</th>
-                  <th>Estado</th>
+                  <th>Fecha de creación</th>
                   <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredUsers.length > 0 ? (
                   filteredUsers.map(user => (
-                    <tr key={user.id}>
-                      <td>{`${user.nombre} ${user.apellidoPat} ${user.apellidoMat}`}</td>
-                      <td>@{user.username}</td>
+                    <tr key={user.ID}>
+                      <td>{user.ID}</td>
+                      <td>{user['Nombre Completo']}</td>
+                      <td>{user.Rol}</td>
+                      <td>{user.Usuario}</td>
+                      <td>{user.Contraseña}</td>
+                      <td>{formatDate(user['Fecha de creación'])}</td>
+
                       <td>
-                        <span className={`role-badge ${user.role.toLowerCase()}`}>
-                          {user.role}
-                        </span>
-                      </td>
-                      <td className="password-cell">{user.password}</td>
-                      <td>
-                        <span className={`status-badge ${user.status.toLowerCase()}`}>
-                          {user.status}
-                        </span>
-                      </td>
-                      <td>
-                        <button 
-                          className="delete-btn"
-                          onClick={() => deleteUser(user.id)}
-                        >
-                          Eliminar
-                        </button>
+                        <button onClick={() => deleteUser(user.ID)}>Eliminar</button>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="6" className="no-results">
-                      No se encontraron usuarios
-                    </td>
+                    <td colSpan="7">No hay usuarios registrados</td>
                   </tr>
                 )}
               </tbody>
             </table>
-          </div>
-
-          <div className="stats-container">
-            <div className="stat-card">
-              <div className="stat-number">{users.filter(u => u.role === 'Jardinero').length}</div>
-              <div className="stat-label">Jardineros</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-number">{users.filter(u => u.role === 'Cajero').length}</div>
-              <div className="stat-label">Cajeros</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-number">{users.filter(u => u.role === 'Almacenista').length}</div>
-              <div className="stat-label">Almacenistas</div>
-            </div>
           </div>
         </section>
       </div>
