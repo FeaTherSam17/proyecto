@@ -76,16 +76,6 @@ const UserManagement = () => {
     }
   };
 
-  // Función para formatear la fecha en dd/mm/yyyy
-  const formatDate = (dateStr) => {
-    const date = new Date(dateStr);
-    const day = ('0' + date.getDate()).slice(-2); // Formatear el día con dos dígitos
-    const month = ('0' + (date.getMonth() + 1)).slice(-2); // Formatear el mes con dos dígitos
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
-  };
-  
-
   // Filtrar usuarios según el término de búsqueda
   const filteredUsers = users.filter(user =>
     `${user['Nombre Completo']}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -156,13 +146,12 @@ const UserManagement = () => {
                   <label>Rol*</label>
                   <select
                     value={newUser.role}
-                    onChange={(e) => setNewUser({...newUser, role: parseInt(e.target.value)})}  // Cambié a número
+                    onChange={(e) => setNewUser({...newUser, role: parseInt(e.target.value)})}
                     required
                   >
                     <option value={4}>Jardinero</option>
                     <option value={3}>Cajero</option>
                     <option value={2}>Almacenista</option>
-                    {/* Eliminé la opción de Admin */}
                   </select>
                 </div>
 
@@ -222,8 +211,7 @@ const UserManagement = () => {
                       <td>{user.Rol}</td>
                       <td>{user.Usuario}</td>
                       <td>{user.Contraseña}</td>
-                      <td>{formatDate(user['Fecha de creación'])}</td>
-
+                      <td>{user['Fecha de creación']}</td>
                       <td>
                         <button onClick={() => deleteUser(user.ID)}>Eliminar</button>
                       </td>
