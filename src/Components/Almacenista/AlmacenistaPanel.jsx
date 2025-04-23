@@ -1,94 +1,166 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './AlmacenistaPanel.css';
 import logo from '../Login/assets/logo.png';
 
 const AlmacenistaPanel = () => {
-  // Estados para el formulario de producto
+  const navigate = useNavigate();
+
   const [nuevoProducto, setNuevoProducto] = useState({
     nombre: '',
     categoria: 'plantas',
     precio: '',
-    proveedor: ''
+    proveedor: '',
+    cantidad: '' // ← nuevo campo
   });
 
-  // Estados para la lista de productos
-  const [productos, setProductos] = useState([
-    {
-      id: 1,
-      nombre: 'Suculenta Echeveria',
-      categoria: 'plantas',
-      precio: 8.50,
-      proveedor: 'Viveros Green'
-    },
-    {
-      id: 2,
-      nombre: 'Tijeras de Podar',
-      categoria: 'herramientas',
-      precio: 24.90,
-      proveedor: 'FerreJardín'
-    }
-  ]);
-
-  // Estados para proveedores
-  const [proveedores] = useState([
-    'Viveros Green',
-    'FerreJardín',
-    'Insumos Agrícolas',
-    'Plantas del Valle'
-  ]);
-
-  // Estados para búsqueda
+  const [productos, setProductos] = useState([]);
+  const [proveedores, setProveedores] = useState([]);
   const [busqueda, setBusqueda] = useState('');
   const [categoriaFiltro, setCategoriaFiltro] = useState('todas');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const cargarDatos = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const [productosResp, proveedoresResp] = await Promise.all([
+          fetch('http://localhost:3001/productos'),
+          fetch('http://localhost:3001/suppliers')
+        ]);
+
+        if (!productosResp.ok || !proveedoresResp.ok) {
+          throw new Error('Error al obtener productos o proveedores');
+        }
+
+        const productosData = await productosResp.json();
+        const proveedoresData = await proveedoresResp.json();
+
+        const listaProveedores = proveedoresData.suppliers || [];
+
+        const listaProductos = Array.isArray(productosData)
+          ? productosData
+          : productosData.data || [];
+
+        setProveedores(listaProveedores.map(p => ({
+          ...p,
+          id: p.id || p.id_proveedor
+        })));
+
+        setProductos(listaProductos.map(p => ({
+          id: p.id || p.id_producto,
+          nombre: p.nombre,
+          categoria: (p.categoria || 'plantas').toLowerCase(),
+          precio: parseFloat(p.precio) || 0,
+          stock: p.stock || 0,
+          proveedor: p.proveedor || 'Sin proveedor'
+        })));
+      } catch (err) {
+        console.error('Error al cargar datos:', err);
+        setError('Error al cargar los datos iniciales');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    cargarDatos();
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setNuevoProducto({
-      ...nuevoProducto,
-      [name]: value
-    });
+    setNuevoProducto(prev => ({ ...prev, [name]: value }));
   };
 
-  const agregarProducto = (e) => {
+  const obtenerIdCategoria = (categoria) => {
+    switch (categoria.toLowerCase()) {
+      case 'plantas': return 1;
+      case 'herramientas': return 2;
+      default: return null;
+    }
+  };
+
+  const agregarProducto = async (e) => {
     e.preventDefault();
-    
+
     if (!nuevoProducto.nombre || !nuevoProducto.precio) {
-      alert('Por favor complete los campos obligatorios');
+      alert('Nombre y precio son obligatorios');
       return;
     }
 
-    const producto = {
-      id: productos.length + 1,
-      nombre: nuevoProducto.nombre,
-      categoria: nuevoProducto.categoria,
-      precio: parseFloat(nuevoProducto.precio),
-      proveedor: nuevoProducto.proveedor || 'Sin proveedor'
-    };
+    const idCategoria = obtenerIdCategoria(nuevoProducto.categoria);
+    if (!idCategoria) {
+      alert('Categoría inválida');
+      return;
+    }
 
-    setProductos([...productos, producto]);
-    setNuevoProducto({
-      nombre: '',
-      categoria: 'plantas',
-      precio: '',
-      proveedor: ''
-    });
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch('http://localhost:3001/productos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nombre: nuevoProducto.nombre,
+          id_categoria: idCategoria,
+          precio: parseFloat(nuevoProducto.precio),
+          id_proveedor: nuevoProducto.proveedor || null,
+          stock: parseInt(nuevoProducto.cantidad) || 0 // ← cantidad enviada
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al registrar producto');
+      }
+
+      const nuevo = await response.json();
+      const proveedor = proveedores.find(p => p.id == nuevoProducto.proveedor);
+      const cantidad = parseInt(nuevoProducto.cantidad) || 0;
+
+      setProductos(prev => [...prev, {
+        id: nuevo.id || Date.now(),
+        nombre: nuevoProducto.nombre,
+        categoria: nuevoProducto.categoria.toLowerCase(),
+        precio: parseFloat(nuevoProducto.precio),
+        stock: cantidad,
+        proveedor: proveedor?.nombre || 'Sin proveedor'
+      }]);
+
+      setNuevoProducto({
+        nombre: '',
+        categoria: 'plantas',
+        precio: '',
+        proveedor: '',
+        cantidad: '' // ← reset
+      });
+
+    } catch (err) {
+      console.error('Error:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const productosFiltrados = productos.filter(producto => {
-    const coincideBusqueda = producto.nombre.toLowerCase().includes(busqueda.toLowerCase());
-    const coincideCategoria = categoriaFiltro === 'todas' || producto.categoria === categoriaFiltro;
-    return coincideBusqueda && coincideCategoria;
+  const productosFiltrados = productos.filter(p => {
+    const nombreCoincide = p.nombre?.toLowerCase().includes(busqueda.toLowerCase());
+    const categoriaCoincide = categoriaFiltro === 'todas' || p.categoria === categoriaFiltro;
+    return nombreCoincide && categoriaCoincide;
   });
 
-  // Función para cerrar sesión
   const handleLogout = () => {
-    console.log("Sesión cerrada");
-    // Aquí iría la lógica real para cerrar sesión
+    localStorage.removeItem('user');
+    navigate('/');
   };
+
+  if (loading) return <div className="loading">Cargando...</div>;
+  if (error) return <div className="error">Error: {error}</div>;
 
   return (
     <div className="almacenista-panel">
-      {/* Botón flotante de cerrar sesión */}
       <button className="floating-logout-btn" onClick={handleLogout} title="Cerrar sesión">
         <span className="logout-icon">⎋</span>
       </button>
@@ -97,11 +169,11 @@ const AlmacenistaPanel = () => {
         <img src={logo} alt="GreenHouse Logo" className="panel-logo" />
         <h1>GreenHouse - Gestión de Inventario</h1>
       </header>
-      
+
       <div className="panel-container">
         <div className="formulario-section">
           <h2>Registrar Nuevo Producto</h2>
-          
+
           <form onSubmit={agregarProducto} className="producto-form">
             <div className="form-group">
               <label>Nombre*:</label>
@@ -113,7 +185,7 @@ const AlmacenistaPanel = () => {
                 required
               />
             </div>
-            
+
             <div className="form-group">
               <label>Categoría:</label>
               <select
@@ -125,7 +197,7 @@ const AlmacenistaPanel = () => {
                 <option value="herramientas">Herramientas</option>
               </select>
             </div>
-            
+
             <div className="form-group">
               <label>Precio*:</label>
               <input
@@ -138,7 +210,19 @@ const AlmacenistaPanel = () => {
                 required
               />
             </div>
-            
+
+            <div className="form-group">
+              <label>Cantidad:</label>
+              <input
+                type="number"
+                name="cantidad"
+                value={nuevoProducto.cantidad}
+                onChange={handleInputChange}
+                min="0"
+                step="1"
+              />
+            </div>
+
             <div className="form-group">
               <label>Proveedor:</label>
               <select
@@ -147,19 +231,21 @@ const AlmacenistaPanel = () => {
                 onChange={handleInputChange}
               >
                 <option value="">Seleccione proveedor</option>
-                {proveedores.map((proveedor, index) => (
-                  <option key={index} value={proveedor}>{proveedor}</option>
+                {proveedores.map(p => (
+                  <option key={p.id} value={p.id}>{p.nombre}</option>
                 ))}
               </select>
             </div>
-            
-            <button type="submit" className="guardar-btn">Registrar Producto</button>
+
+            <button type="submit" className="guardar-btn" disabled={loading}>
+              {loading ? 'Registrando...' : 'Registrar Producto'}
+            </button>
           </form>
         </div>
-        
+
         <div className="lista-section">
           <h2>Inventario de Productos</h2>
-          
+
           <div className="filtros">
             <input
               type="text"
@@ -168,7 +254,7 @@ const AlmacenistaPanel = () => {
               onChange={(e) => setBusqueda(e.target.value)}
               className="busqueda-input"
             />
-            
+
             <select
               value={categoriaFiltro}
               onChange={(e) => setCategoriaFiltro(e.target.value)}
@@ -179,7 +265,7 @@ const AlmacenistaPanel = () => {
               <option value="herramientas">Herramientas</option>
             </select>
           </div>
-          
+
           <div className="productos-table-container">
             <table className="productos-table">
               <thead>
@@ -188,31 +274,33 @@ const AlmacenistaPanel = () => {
                   <th>Nombre</th>
                   <th>Categoría</th>
                   <th>Precio</th>
+                  <th>Cantidad</th>
                   <th>Proveedor</th>
                 </tr>
               </thead>
               <tbody>
                 {productosFiltrados.length === 0 ? (
                   <tr>
-                    <td colSpan="5" className="no-resultados">No se encontraron productos</td>
+                    <td colSpan="6" className="no-resultados">No se encontraron productos</td>
                   </tr>
                 ) : (
-                  productosFiltrados.map(producto => (
-                    <tr key={producto.id}>
-                      <td>{producto.id}</td>
-                      <td>{producto.nombre}</td>
-                      <td className={`categoria-${producto.categoria}`}>
-                        {producto.categoria === 'plantas' ? '🌱 Plantas' : '🛠️ Herramientas'}
+                  productosFiltrados.map(p => (
+                    <tr key={p.id}>
+                      <td>{p.id}</td>
+                      <td>{p.nombre}</td>
+                      <td className={`categoria-${p.categoria}`}>
+                        {p.categoria === 'plantas' ? '🌱 Plantas' : '🛠️ Herramientas'}
                       </td>
-                      <td>${producto.precio.toFixed(2)}</td>
-                      <td>{producto.proveedor}</td>
+                      <td>${p.precio.toFixed(2)}</td>
+                      <td>{p.stock}</td>
+                      <td>{p.proveedor}</td>
                     </tr>
                   ))
                 )}
               </tbody>
             </table>
           </div>
-          
+
           <div className="resumen-inventario">
             <div className="resumen-item">
               <span>Total productos:</span>
@@ -229,7 +317,7 @@ const AlmacenistaPanel = () => {
           </div>
         </div>
       </div>
-      
+
       <footer className="panel-footer">
         <img src={logo} alt="GreenHouse Logo" className="footer-logo" />
         <p>© {new Date().getFullYear()} GreenHouse</p>

@@ -1,54 +1,66 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './CajeroPanel.css';
 import logo from '../Login/assets/logo.png';
 
 const CajeroPanel = () => {
-  // Datos del empleado (simulados)
-  const empleado = {
-    puesto: "Cajero"
-  };
+  const [productos, setProductos] = useState([]);
+  const [categorias, setCategorias] = useState([]);
 
-  // Estado para los productos disponibles
-  const [productos] = useState([
-    { id_producido: 1, nombre: 'Tomate Cherry', precio: 3.50, id_categoria: 1 },
-    { id_producido: 2, nombre: 'Rosal', precio: 15.00, id_categoria: 3 },
-    { id_producido: 3, nombre: 'Tijeras de Podar', precio: 24.90, id_categoria: 4 },
-    { id_producido: 4, nombre: 'Fertilizante', precio: 12.00, id_categoria: 4 }
-  ]);
-
-  // Categorías
-  const categorias = [
-    { id_categoria: 1, nombre: 'Plantas' },
-    { id_categoria: 2, nombre: 'Frutas' },
-    { id_categoria: 3, nombre: 'Flores' },
-    { id_categoria: 4, nombre: 'Herramientas' }
-  ];
-
-  // Estado para la venta en curso
   const [ventaActual, setVentaActual] = useState({
     items: [],
     subtotal: 0,
     descuento: 0,
-    total: 0,
-    metodoPago: 'efectivo'
+    total: 0
   });
 
-  // Estado para búsqueda y filtros
   const [busqueda, setBusqueda] = useState('');
   const [categoriaFiltro, setCategoriaFiltro] = useState('todas');
 
-  // Obtener nombre de categoría
+  useEffect(() => {
+    fetch('http://localhost:3001/productos')
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          setProductos(data.data);
+        } else {
+          console.error("No se pudieron obtener los productos");
+        }
+      })
+      .catch((error) => {
+        console.error("Error al obtener los productos:", error);
+      });
+
+    fetch('http://localhost:3001/categorias')
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          setCategorias(data.data);
+        } else {
+          console.error("No se pudieron obtener las categorías");
+        }
+      })
+      .catch((error) => {
+        console.error("Error al obtener las categorías:", error);
+      });
+
+    // Evita volver al panel con la flecha de atrás tras cerrar sesión
+    window.history.pushState(null, null, window.location.href);
+    window.onpopstate = function () {
+      window.location.href = '/';
+    };
+  }, []);
+
   const getCategoriaNombre = (id) => {
-    return categorias.find(c => c.id_categoria === id)?.nombre || 'Sin categoría';
+    const categoria = categorias.find(c => c.id_categoria === id);
+    return categoria ? categoria.nombre : 'Sin categoría';
   };
 
-  // Agregar producto a la venta
   const agregarProducto = (producto) => {
-    const itemExistente = ventaActual.items.find(item => item.id_producido === producto.id_producido);
+    const itemExistente = ventaActual.items.find(item => item.id_producto === producto.id_producto);
     
     if (itemExistente) {
       const itemsActualizados = ventaActual.items.map(item =>
-        item.id_producido === producto.id_producido 
+        item.id_producto === producto.id_producto 
           ? { ...item, cantidad: item.cantidad + 1, total: item.precio * (item.cantidad + 1) }
           : item
       );
@@ -63,25 +75,22 @@ const CajeroPanel = () => {
     }
   };
 
-  // Actualizar cantidades en la venta
   const actualizarCantidad = (id, nuevaCantidad) => {
     if (nuevaCantidad < 1) return;
     
     const itemsActualizados = ventaActual.items.map(item =>
-      item.id_producido === id 
+      item.id_producto === id 
         ? { ...item, cantidad: nuevaCantidad, total: item.precio * nuevaCantidad }
         : item
     );
     actualizarVenta(itemsActualizados);
   };
 
-  // Eliminar producto de la venta
   const eliminarProducto = (id) => {
-    const itemsActualizados = ventaActual.items.filter(item => item.id_producido !== id);
+    const itemsActualizados = ventaActual.items.filter(item => item.id_producto !== id);
     actualizarVenta(itemsActualizados);
   };
 
-  // Actualizar estado completo de la venta
   const actualizarVenta = (items) => {
     const subtotal = items.reduce((sum, item) => sum + item.total, 0);
     const descuento = ventaActual.descuento;
@@ -95,7 +104,6 @@ const CajeroPanel = () => {
     });
   };
 
-  // Aplicar descuento
   const aplicarDescuento = (e) => {
     const descuento = Number(e.target.value) || 0;
     const total = ventaActual.subtotal - descuento;
@@ -107,7 +115,6 @@ const CajeroPanel = () => {
     });
   };
 
-  // Filtrar productos
   const productosFiltrados = productos.filter(producto => {
     const coincideBusqueda = producto.nombre.toLowerCase().includes(busqueda.toLowerCase());
     const coincideCategoria = categoriaFiltro === 'todas' || 
@@ -115,45 +122,54 @@ const CajeroPanel = () => {
     return coincideBusqueda && coincideCategoria;
   });
 
-  // Categorías únicas para el filtro
   const categoriasFiltro = ['todas', ...categorias.map(c => c.nombre)];
 
-  // Finalizar venta
   const finalizarVenta = () => {
     const nuevaVenta = {
       fecha: new Date().toISOString().split('T')[0],
       total: ventaActual.total,
-      metodoPago: ventaActual.metodoPago,
       items: ventaActual.items.map(item => ({
-        id_producido: item.id_producido,
+        id_producto: item.id_producto,
         cantidad: item.cantidad,
         precio_unitario: item.precio,
         total: item.total
       }))
     };
-    
-    console.log('Venta a guardar:', nuevaVenta);
-    
-    // Resetear venta
-    setVentaActual({
-      items: [],
-      subtotal: 0,
-      descuento: 0,
-      total: 0,
-      metodoPago: 'efectivo'
-    });
-    
-    alert('Venta registrada exitosamente');
+  
+    fetch('http://localhost:3001/ventas', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(nuevaVenta)
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          alert('Venta registrada exitosamente');
+          setVentaActual({
+            items: [],
+            subtotal: 0,
+            descuento: 0,
+            total: 0
+          });
+        } else {
+          alert('Error al registrar venta: ' + data.message);
+        }
+      })
+      .catch(error => {
+        console.error('Error al enviar la venta:', error);
+        alert('Error de conexión al registrar la venta');
+      });
   };
 
-  // Cerrar sesión
   const handleLogout = () => {
-    console.log("Sesión cerrada");
+    localStorage.removeItem('usuario');
+    window.location.href = '/';
   };
 
   return (
     <div className="cajero-panel">
-      {/* Botón flotante de cerrar sesión */}
       <button className="floating-logout-btn" onClick={handleLogout} title="Cerrar sesión">
         <span className="logout-icon">⎋</span>
       </button>
@@ -169,7 +185,6 @@ const CajeroPanel = () => {
       </header>
       
       <div className="panel-container">
-        {/* Sección de productos */}
         <div className="productos-section">
           <div className="section-header">
             <h2>Productos Disponibles</h2>
@@ -181,7 +196,6 @@ const CajeroPanel = () => {
                 onChange={(e) => setBusqueda(e.target.value)}
                 className="busqueda-input"
               />
-              
               <select
                 value={categoriaFiltro}
                 onChange={(e) => setCategoriaFiltro(e.target.value)}
@@ -195,11 +209,11 @@ const CajeroPanel = () => {
               </select>
             </div>
           </div>
-          
+
           <div className="productos-grid">
             {productosFiltrados.map(producto => (
               <div 
-                key={producto.id_producido} 
+                key={producto.id_producto} 
                 className="producto-card"
                 onClick={() => agregarProducto(producto)}
               >
@@ -210,8 +224,7 @@ const CajeroPanel = () => {
             ))}
           </div>
         </div>
-        
-        {/* Sección de venta actual */}
+
         <div className="venta-section">
           <h2>Venta Actual</h2>
           
@@ -231,21 +244,21 @@ const CajeroPanel = () => {
                 </thead>
                 <tbody>
                   {ventaActual.items.map(item => (
-                    <tr key={item.id_producido}>
+                    <tr key={item.id_producto}>
                       <td>{item.nombre}</td>
                       <td>
                         <input
                           type="number"
                           min="1"
                           value={item.cantidad}
-                          onChange={(e) => actualizarCantidad(item.id_producido, parseInt(e.target.value))}
+                          onChange={(e) => actualizarCantidad(item.id_producto, parseInt(e.target.value))}
                         />
                       </td>
                       <td>${item.precio.toFixed(2)}</td>
                       <td>${item.total.toFixed(2)}</td>
                       <td>
                         <button 
-                          onClick={() => eliminarProducto(item.id_producido)}
+                          onClick={() => eliminarProducto(item.id_producto)}
                           className="eliminar-btn"
                         >
                           ×
@@ -257,7 +270,7 @@ const CajeroPanel = () => {
               </table>
             )}
           </div>
-          
+
           <div className="resumen-venta">
             <div className="resumen-linea">
               <span>Subtotal:</span>
@@ -282,18 +295,6 @@ const CajeroPanel = () => {
             </div>
           </div>
           
-          <div className="metodo-pago">
-            <label>Método de pago:</label>
-            <select
-              value={ventaActual.metodoPago}
-              onChange={(e) => setVentaActual({...ventaActual, metodoPago: e.target.value})}
-            >
-              <option value="efectivo">Efectivo</option>
-              <option value="tarjeta">Tarjeta</option>
-              <option value="transferencia">Transferencia</option>
-            </select>
-          </div>
-          
           <div className="acciones-venta">
             <button 
               className="cancelar-btn"
@@ -301,8 +302,7 @@ const CajeroPanel = () => {
                 items: [],
                 subtotal: 0,
                 descuento: 0,
-                total: 0,
-                metodoPago: 'efectivo'
+                total: 0
               })}
             >
               Cancelar

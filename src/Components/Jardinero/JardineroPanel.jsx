@@ -1,73 +1,49 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './JardineroPanel.css';
 import logo from '../Login/assets/logo.png';
-//import { useNavigate } from 'react-router-dom';
 
 const JardineroPanel = () => {
- // const navigate = useNavigate();
-  
-  // Estado para las tareas
-  const [tareas, setTareas] = useState([
-    {
-      id_tarea: 1,
-      titulo: "Regar plantas zona B",
-      descripcion: "Regar todas las plantas de la sección B del invernadero principal con sistema de goteo",
-      prioridad: "alta",
-      fecha_limite: "2023-11-15",
-      completada: 0,
-      zona: "Invernadero Principal"
-    },
-    {
-      id_tarea: 2,
-      titulo: "Podar rosales",
-      descripcion: "Realizar poda formativa a los rosales del sector este, retirar ramas secas",
-      prioridad: "media",
-      fecha_limite: "2023-11-18",
-      completada: 0,
-      zona: "Sector Este"
-    },
-    {
-      id_tarea: 3,
-      titulo: "Control de plagas",
-      descripcion: "Aplicar tratamiento orgánico contra pulgones en plantas de tomate",
-      prioridad: "baja",
-      fecha_limite: "2023-11-20",
-      completada: 0,
-      zona: "Invernadero Oeste"
-    },
-    {
-      id_tarea: 4,
-      titulo: "Abonar sustratos",
-      descripcion: "Aplicar fertilizante orgánico en camas de cultivo 1-4",
-      prioridad: "media",
-      fecha_limite: "2023-11-22",
-      completada: 0,
-      zona: "Camas de Cultivo"
-    }
-  ]);
-
+  const [tareas, setTareas] = useState([]);
   const [tareaSeleccionada, setTareaSeleccionada] = useState(null);
   const [filtroPrioridad, setFiltroPrioridad] = useState('todas');
   const [menuAbierto, setMenuAbierto] = useState(false);
+  const idJardinero = 1; // ← cámbialo por el ID real del jardinero logueado
 
-  const tareasFiltradas = tareas.filter(tarea => 
-    filtroPrioridad === 'todas' || tarea.prioridad === filtroPrioridad
-  );
+  // Cargar tareas desde el backend
+  useEffect(() => {
+    fetch(`http://localhost:3001/tareas/jardinero/${idJardinero}`)
+      .then(res => {
+        console.log('Respuesta del servidor:', res);
+        return res.json(); // Asegúrate de que la respuesta sea JSON
+      })
+      .then(data => {
+        console.log('Datos recibidos:', data);
+        setTareas(data.tareas);
+      })
+      .catch(err => console.error('Error al cargar tareas:', err));
+  }, []);
+  
 
   const completarTarea = (id) => {
-    setTareas(tareas.map(tarea => 
-      tarea.id_tarea === id ? { ...tarea, completada: 1 } : tarea
-    ));
-  };
-
-  const handleLogout = () => {
-   // navigate('/login');
+    fetch(`http://localhost:3001/tareas/${id}/completar`, {
+      method: 'PUT'
+    })
+    .then(res => {
+      if (res.ok) {
+        setTareas(tareas.map(t => t.id_tarea === id ? { ...t, completada: true } : t));
+      }
+    })
+    .catch(err => console.error('Error al completar tarea:', err));
   };
 
   const formatFecha = (fecha) => {
     const opciones = { weekday: 'short', day: 'numeric', month: 'short' };
     return new Date(fecha).toLocaleDateString('es-ES', opciones);
   };
+
+  const tareasFiltradas = tareas.filter(t => 
+    filtroPrioridad === 'todas' || t.prioridad === filtroPrioridad
+  );
 
   return (
     <div className="jardinero-container">
@@ -77,38 +53,21 @@ const JardineroPanel = () => {
           <img src={logo} alt="GreenHouse Logo" className="logo" />
           <h1>GreenHouse</h1>
         </div>
-        
         <div className="filtros-sidebar">
           <h3>Filtrar por:</h3>
           <div className="filtro-group">
-            <button 
-              className={`filtro-btn ${filtroPrioridad === 'todas' ? 'active' : ''}`}
-              onClick={() => setFiltroPrioridad('todas')}
-            >
-              Todas las tareas
-            </button>
-            <button 
-              className={`filtro-btn prioridad-alta ${filtroPrioridad === 'alta' ? 'active' : ''}`}
-              onClick={() => setFiltroPrioridad('alta')}
-            >
-              Alta prioridad
-            </button>
-            <button 
-              className={`filtro-btn prioridad-media ${filtroPrioridad === 'media' ? 'active' : ''}`}
-              onClick={() => setFiltroPrioridad('media')}
-            >
-              Media prioridad
-            </button>
-            <button 
-              className={`filtro-btn prioridad-baja ${filtroPrioridad === 'baja' ? 'active' : ''}`}
-              onClick={() => setFiltroPrioridad('baja')}
-            >
-              Baja prioridad
-            </button>
+            {['todas', 'alta', 'media', 'baja'].map(p => (
+              <button 
+                key={p}
+                className={`filtro-btn prioridad-${p} ${filtroPrioridad === p ? 'active' : ''}`}
+                onClick={() => setFiltroPrioridad(p)}
+              >
+                {p === 'todas' ? 'Todas las tareas' : `Prioridad ${p}`}
+              </button>
+            ))}
           </div>
         </div>
-        
-        <button className="logout-btn" onClick={handleLogout}>
+        <button className="logout-btn">
           <i className="fas fa-sign-out-alt"></i> Cerrar Sesión
         </button>
       </div>
@@ -160,38 +119,33 @@ const JardineroPanel = () => {
         </div>
       </div>
 
-      {/* Modal de detalles */}
+      {/* Modal detalles */}
       {tareaSeleccionada && (
         <div className="modal-overlay">
           <div className="modal-content">
             <button className="close-modal" onClick={() => setTareaSeleccionada(null)}>
               <i className="fas fa-times"></i>
             </button>
-            
             <div className="modal-header">
               <h2>{tareaSeleccionada.titulo}</h2>
               <span className={`modal-prioridad ${tareaSeleccionada.prioridad}`}>
                 {tareaSeleccionada.prioridad.toUpperCase()}
               </span>
             </div>
-            
             <div className="modal-body">
               <div className="info-row">
                 <i className="fas fa-map-marker-alt"></i>
                 <p><strong>Ubicación:</strong> {tareaSeleccionada.zona}</p>
               </div>
-              
               <div className="info-row">
                 <i className="far fa-calendar-alt"></i>
                 <p><strong>Fecha límite:</strong> {formatFecha(tareaSeleccionada.fecha_limite)}</p>
               </div>
-              
               <div className="descripcion-container">
                 <h4>Descripción:</h4>
                 <p>{tareaSeleccionada.descripcion}</p>
               </div>
             </div>
-            
             <div className="modal-footer">
               {!tareaSeleccionada.completada && (
                 <button 
@@ -204,10 +158,7 @@ const JardineroPanel = () => {
                   <i className="fas fa-check"></i> Marcar como completada
                 </button>
               )}
-              <button 
-                className="cerrar-modal-btn"
-                onClick={() => setTareaSeleccionada(null)}
-              >
+              <button className="cerrar-modal-btn" onClick={() => setTareaSeleccionada(null)}>
                 Cerrar
               </button>
             </div>
@@ -215,7 +166,7 @@ const JardineroPanel = () => {
         </div>
       )}
 
-      {/* Mobile sidebar */}
+      {/* Sidebar móvil */}
       {menuAbierto && (
         <div className="mobile-sidebar-overlay">
           <div className="mobile-sidebar">
@@ -223,18 +174,20 @@ const JardineroPanel = () => {
               <i className="fas fa-times"></i>
             </button>
             <div className="filtro-group">
-              <button 
-                className={`filtro-btn ${filtroPrioridad === 'todas' ? 'active' : ''}`}
-                onClick={() => {
-                  setFiltroPrioridad('todas');
-                  setMenuAbierto(false);
-                }}
-              >
-                Todas las tareas
-              </button>
-              {/* ... otros botones de filtro ... */}
+              {['todas', 'alta', 'media', 'baja'].map(p => (
+                <button 
+                  key={p}
+                  className={`filtro-btn prioridad-${p} ${filtroPrioridad === p ? 'active' : ''}`}
+                  onClick={() => {
+                    setFiltroPrioridad(p);
+                    setMenuAbierto(false);
+                  }}
+                >
+                  {p === 'todas' ? 'Todas las tareas' : `Prioridad ${p}`}
+                </button>
+              ))}
             </div>
-            <button className="logout-btn" onClick={handleLogout}>
+            <button className="logout-btn">
               <i className="fas fa-sign-out-alt"></i> Cerrar Sesión
             </button>
           </div>

@@ -1,173 +1,283 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './SuppliersPanel.css';
 
 const SuppliersPanel = () => {
-  // Datos de ejemplo basados en tu estructura
-  const [suppliers, setSuppliers] = useState([
-    { id: 1, name: 'Viveros MX', contact: 'Juan Pérez', phone: '5512345678', email: 'contacto@viverosmx.com', products: 'Plantas ornamentales, sustratos' },
-    { id: 2, name: 'Plantas SA', contact: 'María García', phone: '5587654321', email: 'ventas@plantassa.com', products: 'Fertilizantes, herramientas' },
-    { id: 3, name: 'Insumos Verdes', contact: 'Carlos López', phone: '5532145698', email: 'info@insumosverdes.mx', products: 'Pesticidas, riego' }
-  ]);
-
-  const [transactions, setTransactions] = useState([
-    { 
-      id: 1, 
-      type: 'Compra', 
-      supplierId: 1, 
-      date: '2023-06-15', 
-      amount: 4500, 
-      products: [
-        { name: 'Rosales', quantity: 50, price: 50 },
-        { name: 'Sustrato premium', quantity: 20, price: 100 }
-      ],
-      invoice: 'FAC-001'
-    },
-    { 
-      id: 2, 
-      type: 'Devolución', 
-      supplierId: 2, 
-      date: '2023-06-18', 
-      amount: 1200, 
-      reason: 'Producto defectuoso',
-      products: [
-        { name: 'Fertilizante NPK', quantity: 10, price: 120 }
-      ],
-      invoice: 'DEV-001'
-    }
-  ]);
-
-  const [activeTab, setActiveTab] = useState('transactions');
+  // Estados
+  const [suppliers, setSuppliers] = useState([]);
+  const [operations, setOperations] = useState([]);
+  const [activeTab, setActiveTab] = useState('operations');
   const [newSupplier, setNewSupplier] = useState({
-    name: '',
-    contact: '',
-    phone: '',
+    nombre: '',
+    contacto: '',
+    telefono: '',
     email: '',
-    products: ''
+    factura: '' // Factura solo para proveedores
   });
-  const [newTransaction, setNewTransaction] = useState({
-    type: 'Compra',
+  const [newOperation, setNewOperation] = useState({
+    type: 'compra',
     supplierId: '',
     date: new Date().toISOString().split('T')[0],
-    products: [],
-    amount: 0,
-    invoice: ''
+    productos: [],
+    amount: 0
+    // Eliminado: factura (no existe en la tabla operaciones_proveedores)
   });
   const [showModal, setShowModal] = useState(false);
-  const [modalType, setModalType] = useState(''); // 'supplier' o 'transaction'
+  const [modalType, setModalType] = useState('');
+  const [editingSupplier, setEditingSupplier] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const addSupplier = (e) => {
-    e.preventDefault();
-    const supplier = {
-      id: Date.now(),
-      ...newSupplier
+  // Cargar datos iniciales
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const [suppliersRes, operationsRes] = await Promise.all([
+          fetch('/suppliers'),
+          fetch('/operaciones-proveedores')
+        ]);
+
+        if (!suppliersRes.ok) throw new Error('Error al cargar proveedores');
+        if (!operationsRes.ok) throw new Error('Error al cargar operaciones');
+
+        const suppliersData = await suppliersRes.json();
+        const operationsData = await operationsRes.json();
+
+        setSuppliers(suppliersData.suppliers || []);
+        setOperations(operationsData.operaciones || []);
+      } catch (err) {
+        console.error('Error:', err);
+        alert(err.message);
+      } finally {
+        setIsLoading(false);
+      }
     };
-    setSuppliers([...suppliers, supplier]);
-    setNewSupplier({
-      name: '',
-      contact: '',
-      phone: '',
-      email: '',
-      products: ''
-    });
-    setShowModal(false);
-  };
 
-  const addTransaction = (e) => {
+    fetchData();
+  }, []);
+
+  // Guardar/Editar Proveedor
+  const handleSupplierSubmit = async (e) => {
     e.preventDefault();
-    const transaction = {
-      id: Date.now(),
-      ...newTransaction
-    };
-    setTransactions([...transactions, transaction]);
-    setNewTransaction({
-      type: 'Compra',
-      supplierId: '',
-      date: new Date().toISOString().split('T')[0],
-      products: [],
-      amount: 0,
-      invoice: ''
-    });
-    setShowModal(false);
+    setIsLoading(true);
+
+    try {
+      const url = editingSupplier 
+        ? `/suppliers/${editingSupplier.id_proveedor}`
+        : '/suppliers';
+      const method = editingSupplier ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editingSupplier || newSupplier)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) throw new Error(data.error || 'Error en el servidor');
+
+      // Actualizar estado
+      if (editingSupplier) {
+        setSuppliers(suppliers.map(s => 
+          s.id_proveedor === editingSupplier.id_proveedor 
+            ? { ...s, ...editingSupplier } 
+            : s
+        ));
+      } else {
+        setSuppliers([...suppliers, { ...newSupplier, id_proveedor: data.id }]);
+      }
+
+      // Resetear formulario
+      setShowModal(false);
+      setEditingSupplier(null);
+      setNewSupplier({
+        nombre: '',
+        contacto: '',
+        telefono: '',
+        email: '',
+        factura: ''
+      });
+
+      alert(data.message || 'Proveedor guardado exitosamente');
+    } catch (err) {
+      console.error('Error:', err);
+      alert(err.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const deleteTransaction = (id) => {
-    setTransactions(transactions.filter(tx => tx.id !== id));
+  // Guardar Operación (sin factura)
+  const handleOperationSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const operationData = {
+        tipo: newOperation.type,
+        id_proveedor: newOperation.supplierId,
+        fecha: newOperation.date,
+        total: newOperation.amount,
+        descripcion: newOperation.productos.join(', ')
+        // No incluir factura (no existe en la tabla)
+      };
+
+      const response = await fetch('/operaciones-proveedores', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(operationData)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) throw new Error(data.error || 'Error en el servidor');
+
+      // Actualizar estado
+      setOperations([data.operacion, ...operations]);
+
+      // Resetear formulario
+      setShowModal(false);
+      setNewOperation({
+        type: 'compra',
+        supplierId: '',
+        date: new Date().toISOString().split('T')[0],
+        productos: [],
+        amount: 0
+      });
+
+      alert(data.message || 'Operación registrada exitosamente');
+    } catch (err) {
+      console.error('Error:', err);
+      alert(err.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
+  // Eliminar Proveedor
+  const deleteSupplier = async (id) => {
+    if (!window.confirm('¿Eliminar este proveedor?')) return;
+    
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/suppliers/${id}`, { method: 'DELETE' });
+      const data = await response.json();
+
+      if (!response.ok) throw new Error(data.error || 'Error al eliminar');
+
+      setSuppliers(suppliers.filter(s => s.id_proveedor !== id));
+      alert(data.message || 'Proveedor eliminado');
+    } catch (err) {
+      console.error('Error:', err);
+      alert(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Eliminar Operación
+  const deleteOperation = async (id) => {
+    if (!window.confirm('¿Eliminar esta operación?')) return;
+    
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/operaciones-proveedores/${id}`, { method: 'DELETE' });
+      const data = await response.json();
+
+      if (!response.ok) throw new Error(data.error || 'Error al eliminar');
+
+      setOperations(operations.filter(op => op.id_operacion !== id));
+      alert(data.message || 'Operación eliminada');
+    } catch (err) {
+      console.error('Error:', err);
+      alert(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Formatear moneda
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(amount);
+    return new Intl.NumberFormat('es-MX', { 
+      style: 'currency', 
+      currency: 'MXN' 
+    }).format(amount);
   };
 
-  const getSupplierName = (id) => {
-    return suppliers.find(s => s.id === id)?.name || 'Proveedor desconocido';
+  // Formatear fecha
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('es-MX', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
   };
 
   return (
     <div className="suppliers-container">
       <header className="suppliers-header">
         <h1>🌿 Gestión de Proveedores</h1>
-        <p>Compras y relaciones con proveedores</p>
+        <p>Compras y operaciones con proveedores</p>
       </header>
 
+      {isLoading && (
+        <div className="loading-overlay">
+          <div className="loading-spinner"></div>
+        </div>
+      )}
+
       <div className="suppliers-content">
-        {/* Panel de navegación */}
         <nav className="suppliers-nav">
           <button
-            className={activeTab === 'transactions' ? 'active' : ''}
-            onClick={() => setActiveTab('transactions')}
+            className={activeTab === 'operations' ? 'active' : ''}
+            onClick={() => setActiveTab('operations')}
+            disabled={isLoading}
           >
-            Movimientos
+            Operaciones
           </button>
           <button
             className={activeTab === 'suppliers' ? 'active' : ''}
             onClick={() => setActiveTab('suppliers')}
+            disabled={isLoading}
           >
             Proveedores
           </button>
-          <button
-            className={activeTab === 'products' ? 'active' : ''}
-            onClick={() => setActiveTab('products')}
-          >
-            Productos
-          </button>
         </nav>
 
-        {/* Panel de acciones */}
         <div className="actions-panel">
-          {activeTab === 'transactions' && (
+          {activeTab === 'operations' && (
             <>
               <button 
                 className="action-button primary"
                 onClick={() => {
-                  setModalType('transaction');
-                  setNewTransaction({
-                    type: 'Compra',
-                    supplierId: suppliers[0]?.id || '',
-                    date: new Date().toISOString().split('T')[0],
-                    products: [],
-                    amount: 0,
-                    invoice: ''
+                  setModalType('operation');
+                  setNewOperation({ 
+                    type: 'compra', 
+                    supplierId: suppliers[0]?.id_proveedor || '', 
+                    date: new Date().toISOString().split('T')[0], 
+                    productos: [], 
+                    amount: 0
                   });
                   setShowModal(true);
                 }}
+                disabled={isLoading || suppliers.length === 0}
               >
                 + Registrar Compra
               </button>
               <button 
                 className="action-button secondary"
                 onClick={() => {
-                  setModalType('transaction');
-                  setNewTransaction({
-                    type: 'Devolución',
-                    supplierId: suppliers[0]?.id || '',
-                    date: new Date().toISOString().split('T')[0],
-                    products: [],
-                    amount: 0,
-                    invoice: '',
-                    reason: ''
+                  setModalType('operation');
+                  setNewOperation({ 
+                    type: 'devolucion', 
+                    supplierId: suppliers[0]?.id_proveedor || '', 
+                    date: new Date().toISOString().split('T')[0], 
+                    productos: [], 
+                    amount: 0
                   });
                   setShowModal(true);
                 }}
+                disabled={isLoading || suppliers.length === 0}
               >
                 + Registrar Devolución
               </button>
@@ -179,144 +289,118 @@ const SuppliersPanel = () => {
               className="action-button primary"
               onClick={() => {
                 setModalType('supplier');
+                setNewSupplier({ 
+                  nombre: '', 
+                  contacto: '', 
+                  telefono: '', 
+                  email: '', 
+                  factura: '' 
+                });
+                setEditingSupplier(null);
                 setShowModal(true);
               }}
+              disabled={isLoading}
             >
               + Nuevo Proveedor
             </button>
           )}
         </div>
 
-        {/* Contenido principal */}
         <div className="main-content">
-          {activeTab === 'transactions' && (
-            <div className="transactions-section">
-              <h2>Historial de Movimientos</h2>
-              <div className="transactions-table-container">
-                <table className="transactions-table">
-                  <thead>
-                    <tr>
-                      <th>Tipo</th>
-                      <th>Proveedor</th>
-                      <th>Fecha</th>
-                      <th>Factura</th>
-                      <th>Monto</th>
-                      <th>Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {transactions.length > 0 ? (
-                      transactions.map(tx => (
-                        <tr key={tx.id} className={tx.type.toLowerCase()}>
+          {activeTab === 'operations' ? (
+            <div className="operations-section">
+              <h2>Historial de Operaciones</h2>
+              {operations.length === 0 ? (
+                <p className="no-data">No hay operaciones registradas</p>
+              ) : (
+                <div className="operations-table-container">
+                  <table className="operations-table">
+                    <thead>
+                      <tr>
+                        <th>Tipo</th>
+                        <th>Proveedor</th>
+                        <th>Fecha</th>
+                        <th>Descripción</th>
+                        <th>Monto</th>
+                        <th>Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {operations.map(op => (
+                        <tr key={op.id_operacion}>
                           <td>
-                            <span className={`tx-type ${tx.type.toLowerCase()}`}>
-                              {tx.type}
+                            <span className={`op-badge ${op.tipo}`}>
+                              {op.tipo === 'compra' ? '🛒 Compra' : '↩️ Devolución'}
                             </span>
                           </td>
-                          <td>{getSupplierName(tx.supplierId)}</td>
-                          <td>{new Date(tx.date).toLocaleDateString()}</td>
-                          <td>{tx.invoice}</td>
-                          <td>{formatCurrency(tx.amount)}</td>
+                          <td>{op.proveedor}</td>
+                          <td>{formatDate(op.fecha)}</td>
+                          <td>{op.descripcion}</td>
+                          <td>{formatCurrency(op.total)}</td>
                           <td>
                             <button 
-                              className="action-icon"
-                              onClick={() => {
-                                setModalType('transaction');
-                                setNewTransaction(tx);
-                                setShowModal(true);
-                              }}
-                            >
-                              ✏️
-                            </button>
-                            <button 
                               className="action-icon danger"
-                              onClick={() => deleteTransaction(tx.id)}
+                              onClick={() => deleteOperation(op.id_operacion)}
+                              disabled={isLoading}
                             >
-                              🗑️
+                              🗑️ Eliminar
                             </button>
                           </td>
                         </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan="6" className="no-data">
-                          No hay movimientos registrados
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
-          )}
-
-          {activeTab === 'suppliers' && (
+          ) : (
             <div className="suppliers-section">
-              <h2>Lista de Proveedores</h2>
-              <div className="suppliers-grid">
-                {suppliers.length > 0 ? (
-                  suppliers.map(supplier => (
-                    <div key={supplier.id} className="supplier-card">
-                      <h3>{supplier.name}</h3>
-                      <div className="supplier-info">
-                        <p><strong>Contacto:</strong> {supplier.contact}</p>
-                        <p><strong>Teléfono:</strong> {supplier.phone}</p>
-                        <p><strong>Email:</strong> {supplier.email}</p>
-                        <p><strong>Productos:</strong> {supplier.products}</p>
-                      </div>
-                      <div className="supplier-actions">
-                        <button className="edit-btn">Editar</button>
-                        <button className="delete-btn">Eliminar</button>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="no-suppliers">
-                    <p>No hay proveedores registrados</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'products' && (
-            <div className="products-section">
-              <h2>Productos por Proveedor</h2>
-              <div className="products-table-container">
-                <table className="products-table">
-                  <thead>
-                    <tr>
-                      <th>Proveedor</th>
-                      <th>Productos</th>
-                      <th>Última Compra</th>
-                      <th>Precio Promedio</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {suppliers.map(supplier => (
-                      <tr key={supplier.id}>
-                        <td>{supplier.name}</td>
-                        <td>{supplier.products}</td>
-                        <td>
-                          {transactions
-                            .filter(tx => tx.supplierId === supplier.id && tx.type === 'Compra')
-                            .sort((a, b) => new Date(b.date) - new Date(a.date))[0]?.date || 'N/A'}
-                        </td>
-                        <td>
-                          {formatCurrency(
-                            transactions
-                              .filter(tx => tx.supplierId === supplier.id && tx.type === 'Compra')
-                              .reduce((sum, tx) => sum + tx.amount, 0) / 
-                            transactions
-                              .filter(tx => tx.supplierId === supplier.id && tx.type === 'Compra')
-                              .length || 0
-                          )}
-                        </td>
+              <h2>Proveedores</h2>
+              {suppliers.length === 0 ? (
+                <p className="no-data">No hay proveedores registrados</p>
+              ) : (
+                <div className="suppliers-table-container">
+                  <table className="suppliers-table">
+                    <thead>
+                      <tr>
+                        <th>Nombre</th>
+                        <th>Contacto</th>
+                        <th>Teléfono</th>
+                        <th>Email</th>
+                        <th>Acciones</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {suppliers.map(supplier => (
+                        <tr key={supplier.id_proveedor}>
+                          <td>{supplier.nombre}</td>
+                          <td>{supplier.contacto}</td>
+                          <td>{supplier.telefono}</td>
+                          <td>{supplier.email}</td>
+                          <td>
+                            <button
+                              onClick={() => {
+                                setModalType('supplier');
+                                setEditingSupplier(supplier);
+                                setShowModal(true);
+                              }}
+                              disabled={isLoading}
+                            >
+                              ✏️ Editar
+                            </button>
+                            <button
+                              onClick={() => deleteSupplier(supplier.id_proveedor)}
+                              disabled={isLoading}
+                            >
+                              🗑️ Eliminar
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -328,152 +412,243 @@ const SuppliersPanel = () => {
           <div className="modal-content">
             <button 
               className="close-modal"
-              onClick={() => setShowModal(false)}
+              onClick={() => !isLoading && setShowModal(false)}
+              disabled={isLoading}
             >
               ×
             </button>
+            
+            {modalType === 'operation' ? (
+              <form onSubmit={handleOperationSubmit}>
+                <h2>Registrar Nueva Operación</h2>
+                
+                <div className="form-group">
+                  <label>Tipo de Operación *</label>
+                  <select
+                    value={newOperation.type}
+                    onChange={(e) => setNewOperation({ 
+                      ...newOperation, 
+                      type: e.target.value 
+                    })}
+                    required
+                    disabled={isLoading}
+                  >
+                    <option value="compra">Compra</option>
+                    <option value="devolucion">Devolución</option>
+                  </select>
+                </div>
 
-            {modalType === 'supplier' ? (
-              <>
-                <h2>{newSupplier.id ? 'Editar Proveedor' : 'Nuevo Proveedor'}</h2>
-                <form onSubmit={addSupplier}>
-                  <div className="form-group">
-                    <label>Nombre del Proveedor*</label>
-                    <input
-                      type="text"
-                      value={newSupplier.name}
-                      onChange={(e) => setNewSupplier({...newSupplier, name: e.target.value})}
-                      required
-                    />
-                  </div>
+                <div className="form-group">
+                  <label>Proveedor *</label>
+                  <select
+                    value={newOperation.supplierId}
+                    onChange={(e) => setNewOperation({ 
+                      ...newOperation, 
+                      supplierId: e.target.value 
+                    })}
+                    required
+                    disabled={isLoading || suppliers.length === 0}
+                  >
+                    <option value="">Seleccionar proveedor</option>
+                    {suppliers.map(s => (
+                      <option key={s.id_proveedor} value={s.id_proveedor}>
+                        {s.nombre}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label>Persona de Contacto*</label>
-                      <input
-                        type="text"
-                        value={newSupplier.contact}
-                        onChange={(e) => setNewSupplier({...newSupplier, contact: e.target.value})}
-                        required
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>Teléfono*</label>
-                      <input
-                        type="tel"
-                        value={newSupplier.phone}
-                        onChange={(e) => setNewSupplier({...newSupplier, phone: e.target.value})}
-                        required
-                      />
-                    </div>
-                  </div>
+                <div className="form-group">
+                  <label>Fecha *</label>
+                  <input
+                    type="date"
+                    value={newOperation.date}
+                    onChange={(e) => setNewOperation({ 
+                      ...newOperation, 
+                      date: e.target.value 
+                    })}
+                    required
+                    disabled={isLoading}
+                  />
+                </div>
 
-                  <div className="form-group">
-                    <label>Email</label>
-                    <input
-                      type="email"
-                      value={newSupplier.email}
-                      onChange={(e) => setNewSupplier({...newSupplier, email: e.target.value})}
-                    />
-                  </div>
+                <div className="form-group">
+                  <label>Productos *</label>
+                  <textarea
+                    value={newOperation.productos.join(', ')}
+                    onChange={(e) => setNewOperation({ 
+                      ...newOperation, 
+                      productos: e.target.value.split(', ') 
+                    })}
+                    placeholder="Ej: 50 bolsas de sustrato, 10 litros de fertilizante"
+                    required
+                    disabled={isLoading}
+                  />
+                </div>
 
-                  <div className="form-group">
-                    <label>Productos que provee*</label>
-                    <textarea
-                      value={newSupplier.products}
-                      onChange={(e) => setNewSupplier({...newSupplier, products: e.target.value})}
-                      required
-                    />
-                  </div>
+                <div className="form-group">
+                  <label>Monto *</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={newOperation.amount}
+                    onChange={(e) => setNewOperation({ 
+                      ...newOperation, 
+                      amount: parseFloat(e.target.value) || 0 
+                    })}
+                    required
+                    disabled={isLoading}
+                  />
+                </div>
 
-                  <button type="submit" className="submit-btn">
-                    {newSupplier.id ? 'Actualizar' : 'Registrar'}
+                <div className="form-actions">
+                  <button 
+                    type="submit" 
+                    className="submit-button"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? 'Guardando...' : 'Guardar Operación'}
                   </button>
-                </form>
-              </>
+                  <button 
+                    type="button" 
+                    className="cancel-button"
+                    onClick={() => !isLoading && setShowModal(false)}
+                    disabled={isLoading}
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </form>
             ) : (
-              <>
-                <h2>{newTransaction.type === 'Compra' ? 'Registrar Compra' : 'Registrar Devolución'}</h2>
-                <form onSubmit={addTransaction}>
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label>Proveedor*</label>
-                      <select
-                        value={newTransaction.supplierId}
-                        onChange={(e) => setNewTransaction({...newTransaction, supplierId: parseInt(e.target.value)})}
-                        required
-                      >
-                        <option value="">Seleccionar proveedor</option>
-                        {suppliers.map(supplier => (
-                          <option key={supplier.id} value={supplier.id}>
-                            {supplier.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="form-group">
-                      <label>Fecha*</label>
-                      <input
-                        type="date"
-                        value={newTransaction.date}
-                        onChange={(e) => setNewTransaction({...newTransaction, date: e.target.value})}
-                        required
-                      />
-                    </div>
-                  </div>
+              <form onSubmit={handleSupplierSubmit}>
+                <h2>{editingSupplier ? 'Editar Proveedor' : 'Nuevo Proveedor'}</h2>
+                
+                <div className="form-group">
+                  <label>Nombre *</label>
+                  <input
+                    type="text"
+                    value={editingSupplier?.nombre || newSupplier.nombre}
+                    onChange={(e) => 
+                      editingSupplier 
+                        ? setEditingSupplier({ 
+                            ...editingSupplier, 
+                            nombre: e.target.value 
+                          })
+                        : setNewSupplier({ 
+                            ...newSupplier, 
+                            nombre: e.target.value 
+                          })
+                    }
+                    required
+                    disabled={isLoading}
+                  />
+                </div>
 
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label>No. Factura*</label>
-                      <input
-                        type="text"
-                        value={newTransaction.invoice}
-                        onChange={(e) => setNewTransaction({...newTransaction, invoice: e.target.value})}
-                        required
-                        placeholder={newTransaction.type === 'Compra' ? 'FAC-001' : 'DEV-001'}
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>Monto Total*</label>
-                      <input
-                        type="number"
-                        value={newTransaction.amount}
-                        onChange={(e) => setNewTransaction({...newTransaction, amount: parseFloat(e.target.value)})}
-                        required
-                        min="0"
-                        step="0.01"
-                      />
-                    </div>
-                  </div>
+                <div className="form-group">
+                  <label>Contacto *</label>
+                  <input
+                    type="text"
+                    value={editingSupplier?.contacto || newSupplier.contacto}
+                    onChange={(e) => 
+                      editingSupplier 
+                        ? setEditingSupplier({ 
+                            ...editingSupplier, 
+                            contacto: e.target.value 
+                          })
+                        : setNewSupplier({ 
+                            ...newSupplier, 
+                            contacto: e.target.value 
+                          })
+                    }
+                    required
+                    disabled={isLoading}
+                  />
+                </div>
 
-                  {newTransaction.type === 'Devolución' && (
-                    <div className="form-group">
-                      <label>Motivo de la Devolución*</label>
-                      <input
-                        type="text"
-                        value={newTransaction.reason || ''}
-                        onChange={(e) => setNewTransaction({...newTransaction, reason: e.target.value})}
-                        required
-                      />
-                    </div>
-                  )}
+                <div className="form-group">
+                  <label>Teléfono *</label>
+                  <input
+                    type="tel"
+                    value={editingSupplier?.telefono || newSupplier.telefono}
+                    onChange={(e) => 
+                      editingSupplier 
+                        ? setEditingSupplier({ 
+                            ...editingSupplier, 
+                            telefono: e.target.value 
+                          })
+                        : setNewSupplier({ 
+                            ...newSupplier, 
+                            telefono: e.target.value 
+                          })
+                    }
+                    required
+                    disabled={isLoading}
+                  />
+                </div>
 
-                  <div className="form-group">
-                    <label>Productos (opcional)</label>
-                    <textarea
-                      placeholder="Ej: 50 Rosales a $50 c/u, 20 bolsas de sustrato a $100 c/u"
-                      value={newTransaction.products.map(p => `${p.quantity} ${p.name} a ${formatCurrency(p.price)} c/u`).join('\n')}
-                      onChange={(e) => {
-                        // Implementar lógica para parsear productos
-                      }}
-                    />
-                  </div>
+                <div className="form-group">
+                  <label>Email *</label>
+                  <input
+                    type="email"
+                    value={editingSupplier?.email || newSupplier.email}
+                    onChange={(e) => 
+                      editingSupplier 
+                        ? setEditingSupplier({ 
+                            ...editingSupplier, 
+                            email: e.target.value 
+                          })
+                        : setNewSupplier({ 
+                            ...newSupplier, 
+                            email: e.target.value 
+                          })
+                    }
+                    required
+                    disabled={isLoading}
+                  />
+                </div>
 
-                  <button type="submit" className="submit-btn">
-                    {newTransaction.id ? 'Actualizar' : 'Registrar'}
+                <div className="form-group">
+                  <label>Factura (Opcional)</label>
+                  <input
+                    type="text"
+                    value={editingSupplier?.factura || newSupplier.factura}
+                    onChange={(e) => 
+                      editingSupplier 
+                        ? setEditingSupplier({ 
+                            ...editingSupplier, 
+                            factura: e.target.value 
+                          })
+                        : setNewSupplier({ 
+                            ...newSupplier, 
+                            factura: e.target.value 
+                          })
+                    }
+                    disabled={isLoading}
+                  />
+                </div>
+
+                <div className="form-actions">
+                  <button 
+                    type="submit" 
+                    className="submit-button"
+                    disabled={isLoading}
+                  >
+                    {isLoading 
+                      ? (editingSupplier ? 'Actualizando...' : 'Creando...') 
+                      : (editingSupplier ? 'Actualizar Proveedor' : 'Crear Proveedor')
+                    }
                   </button>
-                </form>
-              </>
+                  <button 
+                    type="button" 
+                    className="cancel-button"
+                    onClick={() => !isLoading && setShowModal(false)}
+                    disabled={isLoading}
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </form>
             )}
           </div>
         </div>

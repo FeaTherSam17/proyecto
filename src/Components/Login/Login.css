@@ -1,175 +1,176 @@
-/* Estilos base */
+/* Contenedor principal */
 .login-container {
-    min-height: 100vh;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-  }
-  
-  .login-card {
-    width: 100%;
-    max-width: 420px;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-    overflow: hidden;
-  }
-  
-  /* Encabezado */
-  .login-header {
-    background-color: #4CAF50;
-    padding: 30px 20px;
-    text-align: center;
-  }
-  
-  .logo-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 15px;
-    
-  }
-  
-  .logo {
-    width: 80px;
-    height: 80px;
-    object-fit: contain;
-  }
-  
-  .logo-container h1 {
-    color: #ffffff;
-    font-size: 1.8rem;
-    margin: 0;
-    font-weight: 600;
-  }
-  
-  /* Formulario */
-  .login-form {
-    padding: 30px;
-    display: flex;
-    flex-direction: column;
-    gap: 25px;
-  }
-  
-  .input-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-  
-  .input-group label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 500;
-    color: #333;
-    font-size: 0.95rem;
-  }
-  
-  .input-group input {
-    width: 100%;
-    padding: 14px 16px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-  }
-  
-  .input-group input:focus {
-    outline: none;
-    border-color: #4CAF50;
-    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
-  }
-  
-  /* Contraseña */
-  .password-input {
-    position: relative;
-  }
-  
-  .password-input input {
-    padding-right: 40px;
-  }
-  
-  .toggle-password {
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 4px;
-    color: #666;
-  }
-  
-  .eye-icon {
-    width: 20px;
-    height: 20px;
-  }
-  
-  /* Botón */
-  .login-button {
-    width: 100%;
-    padding: 14px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 500;
-    cursor: pointer;
-    margin-top: 10px;
-    transition: background-color 0.3s;
-  }
-  
-  .login-button:hover {
-    background-color: #3e8e41;
-  }
-  
-  /* Acerca de */
-  .about-section {
-    background-color: #f9f9f9;
-    padding: 20px;
-    border-top: 1px solid #eee;
-    text-align: center;
-  }
-  
-  .about-content h3 {
-    color: #4CAF50;
-    margin-bottom: 8px;
-    font-size: 1.1rem;
-  }
-  
-  .about-content p {
-    color: #666;
-    font-size: 0.85rem;
-    margin: 4px 0;
-    line-height: 1.4;
-  }
-
-  /* Campos de texto mejor proporcionados */
-.input-group input {
-  width: 100%;
-  padding: 12px 15px; /* Ajuste de padding */
-  border: 1px solid #d1d5db; /* Color de borde más suave */
-  border-radius: 8px;
-  font-size: 0.95rem; /* Tamaño de fuente ligeramente reducido */
-  transition: all 0.3s ease;
-  height: 46px; /* Altura fija */
-  box-sizing: border-box; /* Para que el padding no afecte el ancho */
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
 }
 
-/* Contenedor del formulario */
+/* Tarjeta del login */
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+/* Encabezado */
+.login-header {
+  background-color: #4CAF50;
+  padding: 30px 20px;
+  text-align: center;
+}
+
+.logo-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.logo {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+}
+
+.logo-container h1 {
+  color: #ffffff;
+  font-size: 1.8rem;
+  margin: 0;
+  font-weight: 600;
+}
+
+/* Formulario */
 .login-form {
   padding: 30px;
   display: flex;
   flex-direction: column;
-  gap: 20px; /* Espacio entre campos reducido */
+  gap: 20px;
 }
 
-/* Ajuste específico para el campo de contraseña */
+/* Grupo de inputs */
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.input-group label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+/* Campo de texto */
+.input-group input {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  height: 46px;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: #4CAF50;
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+}
+
+/* --- Campo de contraseña especial --- */
+.password-input {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
 .password-input input {
-  padding-right: 40px; /* Espacio para el ícono */
+  flex: 1;
+  padding-right: 40px; /* deja espacio para el ícono sin que lo empuje demasiado */
+}
+
+/* Botón de ver/ocultar contraseña */
+.toggle-password {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.eye-icon {
+  width: 20px;
+  height: 20px;
+  color: #666;
+}
+
+
+/* Botón de login */
+.login-button {
+  width: 100%;
+  padding: 14px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background-color 0.3s;
+}
+
+.login-button:hover {
+  background-color: #3e8e41;
+}
+
+/* Sección Acerca de */
+.about-section {
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-top: 1px solid #eee;
+  text-align: center;
+}
+
+.about-content h3 {
+  color: #4CAF50;
+  margin-bottom: 8px;
+  font-size: 1.1rem;
+}
+
+.about-content p {
+  color: #666;
+  font-size: 0.85rem;
+  margin: 4px 0;
+  line-height: 1.4;
+}
+
+/* Mensaje de error */
+.error-message {
+  background-color: #ffe0e0;
+  border: 1px solid #ff9999;
+  color: #cc0000;
+  padding: 10px 15px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  text-align: center;
 }
