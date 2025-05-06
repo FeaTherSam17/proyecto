@@ -7,33 +7,60 @@ const JardineroPanel = () => {
   const [tareaSeleccionada, setTareaSeleccionada] = useState(null);
   const [filtroPrioridad, setFiltroPrioridad] = useState('todas');
   const [menuAbierto, setMenuAbierto] = useState(false);
-  const idJardinero = 1; // ← cámbialo por el ID real del jardinero logueado
+  const [cargando, setCargando] = useState(true);
 
-  // Cargar tareas desde el backend
+  // Cargar tareas al montar el componente
   useEffect(() => {
-    fetch(`http://localhost:3001/tareas/jardinero/${idJardinero}`)
-      .then(res => {
-        console.log('Respuesta del servidor:', res);
-        return res.json(); // Asegúrate de que la respuesta sea JSON
-      })
-      .then(data => {
-        console.log('Datos recibidos:', data);
-        setTareas(data.tareas);
-      })
-      .catch(err => console.error('Error al cargar tareas:', err));
-  }, []);
-  
-
-  const completarTarea = (id) => {
-    fetch(`http://localhost:3001/tareas/${id}/completar`, {
-      method: 'PUT'
-    })
-    .then(res => {
-      if (res.ok) {
-        setTareas(tareas.map(t => t.id_tarea === id ? { ...t, completada: true } : t));
+    const cargarTareas = async () => {
+      try {
+        const idJardinero = localStorage.getItem('id_usuario');
+        if (!idJardinero) {
+          console.error('No se encontró ID de jardinero');
+          return;
+        }
+    
+        const respuesta = await fetch(`http://localhost:3001/tareas/jardinero/${idJardinero}`);
+        const datos = await respuesta.json();
+    
+        if (!respuesta.ok) {
+          console.error('Error al obtener tareas:', datos.error || 'Error desconocido');
+          throw new Error(datos.error || 'Error al cargar tareas');
+        }
+    
+        setTareas(datos.tareas || []);
+      } catch (error) {
+        console.error('Error al cargar tareas:', error);
+      } finally {
+        setCargando(false);
       }
-    })
-    .catch(err => console.error('Error al completar tarea:', err));
+    };
+    
+
+    cargarTareas();
+  }, []);
+
+  const completarTarea = async (id) => {
+    try {
+      const respuesta = await fetch(`http://localhost:3001/tareas/${id}/completar`, {
+        method: 'PUT'
+      });
+
+      const datos = await respuesta.json();
+      
+      if (!respuesta.ok) {
+        throw new Error(datos.error || 'Error al completar tarea');
+      }
+
+      setTareas(tareas.map(t => 
+        t.id_tarea === id ? { ...t, completada: true } : t
+      ));
+      
+      if (tareaSeleccionada?.id_tarea === id) {
+        setTareaSeleccionada(null);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
   };
 
   const formatFecha = (fecha) => {
@@ -45,29 +72,48 @@ const JardineroPanel = () => {
     filtroPrioridad === 'todas' || t.prioridad === filtroPrioridad
   );
 
+  const cerrarSesion = () => {
+    localStorage.clear();
+    window.location.href = '/';
+  };
+
+  if (cargando) {
+    return (
+      <div className="cargando-container">
+        <div className="cargando-spinner"></div>
+        <p>Cargando tareas...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="jardinero-container">
       {/* Sidebar */}
-      <div className="sidebar">
+      <div className={`sidebar ${menuAbierto ? 'mobile-visible' : ''}`}>
         <div className="logo-container">
           <img src={logo} alt="GreenHouse Logo" className="logo" />
           <h1>GreenHouse</h1>
         </div>
+        
         <div className="filtros-sidebar">
-          <h3>Filtrar por:</h3>
+          <h3>Filtrar por prioridad:</h3>
           <div className="filtro-group">
             {['todas', 'alta', 'media', 'baja'].map(p => (
               <button 
                 key={p}
                 className={`filtro-btn prioridad-${p} ${filtroPrioridad === p ? 'active' : ''}`}
-                onClick={() => setFiltroPrioridad(p)}
+                onClick={() => {
+                  setFiltroPrioridad(p);
+                  setMenuAbierto(false);
+                }}
               >
-                {p === 'todas' ? 'Todas las tareas' : `Prioridad ${p}`}
+                {p === 'todas' ? 'Todas' : `Prioridad ${p}`}
               </button>
             ))}
           </div>
         </div>
-        <button className="logout-btn">
+        
+        <button className="logout-btn" onClick={cerrarSesion}>
           <i className="fas fa-sign-out-alt"></i> Cerrar Sesión
         </button>
       </div>
@@ -121,31 +167,36 @@ const JardineroPanel = () => {
 
       {/* Modal detalles */}
       {tareaSeleccionada && (
-        <div className="modal-overlay">
-          <div className="modal-content">
+        <div className="modal-overlay" onClick={() => setTareaSeleccionada(null)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
             <button className="close-modal" onClick={() => setTareaSeleccionada(null)}>
               <i className="fas fa-times"></i>
             </button>
+            
             <div className="modal-header">
               <h2>{tareaSeleccionada.titulo}</h2>
               <span className={`modal-prioridad ${tareaSeleccionada.prioridad}`}>
                 {tareaSeleccionada.prioridad.toUpperCase()}
               </span>
             </div>
+            
             <div className="modal-body">
               <div className="info-row">
                 <i className="fas fa-map-marker-alt"></i>
                 <p><strong>Ubicación:</strong> {tareaSeleccionada.zona}</p>
               </div>
+              
               <div className="info-row">
                 <i className="far fa-calendar-alt"></i>
                 <p><strong>Fecha límite:</strong> {formatFecha(tareaSeleccionada.fecha_limite)}</p>
               </div>
+              
               <div className="descripcion-container">
                 <h4>Descripción:</h4>
-                <p>{tareaSeleccionada.descripcion}</p>
+                <p>{tareaSeleccionada.descripcion || 'No hay descripción disponible'}</p>
               </div>
             </div>
+            
             <div className="modal-footer">
               {!tareaSeleccionada.completada && (
                 <button 
@@ -162,34 +213,6 @@ const JardineroPanel = () => {
                 Cerrar
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Sidebar móvil */}
-      {menuAbierto && (
-        <div className="mobile-sidebar-overlay">
-          <div className="mobile-sidebar">
-            <button className="close-mobile-menu" onClick={() => setMenuAbierto(false)}>
-              <i className="fas fa-times"></i>
-            </button>
-            <div className="filtro-group">
-              {['todas', 'alta', 'media', 'baja'].map(p => (
-                <button 
-                  key={p}
-                  className={`filtro-btn prioridad-${p} ${filtroPrioridad === p ? 'active' : ''}`}
-                  onClick={() => {
-                    setFiltroPrioridad(p);
-                    setMenuAbierto(false);
-                  }}
-                >
-                  {p === 'todas' ? 'Todas las tareas' : `Prioridad ${p}`}
-                </button>
-              ))}
-            </div>
-            <button className="logout-btn">
-              <i className="fas fa-sign-out-alt"></i> Cerrar Sesión
-            </button>
           </div>
         </div>
       )}

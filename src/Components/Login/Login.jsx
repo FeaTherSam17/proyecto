@@ -7,7 +7,7 @@ import logo from './assets/logo.png';
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [credentials, setCredentials] = useState({
-    username: '',  // Asegúrate de usar "username" aquí, no "usuario"
+    username: '',
     password: ''
   });
   const [error, setError] = useState('');
@@ -28,46 +28,32 @@ const Login = () => {
           'Accept': 'application/json'
         },
         body: JSON.stringify({
-          username: credentials.username,  // Aquí debe coincidir con "username" del servidor
+          username: credentials.username,
           password: credentials.password
         })
       });
 
+      const data = await response.json();
+      
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Error en la autenticación');
+        throw new Error(data.error || 'Error en la autenticación');
       }
 
-      const data = await response.json();
       if (data.success) {
-        // Guardar usuario en localStorage
+        // Guardar datos de usuario
         localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem('id_usuario', JSON.stringify(data.user.id_usuario)); // 🔥 ENVOLVERLO EN JSON.stringify
 
-        // Switch que determina a donde se redirige al usuario según su rol dado por un numero
-        /*
-        1. Admin
-        2. Almacenista
-        3. Cajero
-        4. Jardinero
-        */
+        console.log('👤 Usuario logueado:', data.user);
+
+        // Redirección por rol
         switch (data.user.role) {
-          case 1:
-            navigate('/AdminDashboard');
-            break;
-          case 2:
-            navigate('/Almacenista');
-            break;
-          case 3:
-            navigate('/Cajero');
-            break;
-          case 4:
-            navigate('/Jardinero');
-            break;
-          default:
-            setError('Rol no reconocido');
+          case 1: navigate('/AdminDashboard'); break;
+          case 2: navigate('/Almacenista'); break;
+          case 3: navigate('/Cajero'); break;
+          case 4: navigate('/Jardinero'); break;
+          default: setError('Rol no reconocido');
         }
-      } else {
-        setError(data.error || 'Error de autenticación');
       }
     } catch (err) {
       setError(err.message.includes('Failed to fetch') 
@@ -100,10 +86,10 @@ const Login = () => {
               id="username"
               type="text"
               placeholder="Nombre de usuario"
-              value={credentials.username}  // Usa "username" en lugar de "usuario"
+              value={credentials.username}
               onChange={(e) => setCredentials({
                 ...credentials,
-                username: e.target.value.trim()  // Actualiza "username" aquí
+                username: e.target.value.trim()
               })}
               required
               autoComplete="username"
@@ -156,7 +142,7 @@ const Login = () => {
         <div className="about-section">
           <div className="about-content">
             <h3>Acerca del sistema</h3>
-            <p>Versión 1.4.1 (Conexion Jardinero) - Sistema de administración para invernaderos</p>
+            <p>Versión 1.4.2 (Estable) - Sistema de administración para invernaderos</p>
             <p>© {new Date().getFullYear()} Todos los derechos reservados</p>
           </div>
         </div>

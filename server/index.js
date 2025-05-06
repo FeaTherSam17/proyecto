@@ -58,7 +58,7 @@ app.post('/login', (req, res) => {
     res.json({
       success: true,
       user: {
-        id: user.id_usuario,
+        id_usuario: user.id_usuario,  // Cambiado a id_usuario para consistencia
         username: user.username,
         role: user.id_rol,
         nombre: user.nombre,
@@ -69,7 +69,6 @@ app.post('/login', (req, res) => {
     });
   });
 });
-
 // -------------------- USUARIOS --------------------
 app.get('/usuarios', (req, res) => {
   const sql = `
@@ -681,49 +680,56 @@ app.post('/ventas', (req, res) => {
   });
 });
 
-// --------------------- SECCION DEL JARDINERO --------------------// Código corregido para la ruta de obtener tareas
+// --------------------- SECCION DEL JARDINERO --------------------
+// -------------------- TAREAS JARDINERO --------------------
+app.get('/tareas/jardinero/:idJardinero', (req, res) => {
+  const { idJardinero } = req.params;
+  console.log(`🔍 Solicitando tareas para jardinero ID: ${idJardinero}`);
 
-// Código corregido para la ruta de obtener tareas con depuración
-app.get('/tareas/jardinero/:id_usuario', (req, res) => {
-  const id_usuario = req.params.id_usuario;
-
-  // Consulta SQL para obtener las tareas asignadas a los jardineros (rol 4)
-  const query = `
-    SELECT t.id_tarea, t.titulo, t.descripcion, t.prioridad, t.fecha_limite, t.completada
-    FROM Tareas t
-    JOIN usuarios_tareas ut ON t.id_tarea = ut.id_tarea
-    WHERE ut.id_usuario IN (SELECT id_usuario FROM Usuarios WHERE id_rol = 4);
+  const sql = `
+    SELECT t.*
+    FROM tareas t
+    JOIN usuarios_tareas ut ON ut.id_tarea = t.id_tarea
+    JOIN usuarios u ON u.id_usuario = ut.id_usuario
+    WHERE u.id_rol = 4 AND u.id_usuario = ? AND t.completada = 0
+    ORDER BY 
+      CASE t.prioridad
+        WHEN 'alta' THEN 1
+        WHEN 'media' THEN 2
+        WHEN 'baja' THEN 3
+        ELSE 4
+      END,
+      t.fecha_limite ASC
   `;
 
-  // Ejecutar la consulta
-  db.query(query, (err, results) => {
+  db.query(sql, [idJardinero], (err, results) => {
     if (err) {
-      console.error('Error al obtener las tareas:', err);
-      return res.status(500).json({ error: 'Error al obtener las tareas' });
+      console.error('❌ Error al obtener tareas:', err);
+      return res.status(500).json({ error: 'Error al obtener tareas' });
     }
-
-    // Responder con las tareas obtenidas
+    console.log(`📋 Tareas encontradas: ${results.length}`);
     res.json({ tareas: results });
   });
 });
 
-// Ruta para marcar una tarea como completada
-app.put('/tareas/completar/:id_tarea', (req, res) => {
-  const { id_tarea } = req.params;
+// -------------------- COMPLETAR TAREA --------------------
+app.put('/tareas/:id/completar', (req, res) => {
+  const { id } = req.params;
+  console.log(`✅ Completando tarea ID: ${id}`);
 
-  // Actualizar la tarea como completada
-  const sql = 'UPDATE Tareas SET completada = true WHERE id_tarea = ?';
+  const sql = 'UPDATE tareas SET completada = 1, fecha_completada = NOW() WHERE id_tarea = ?';
 
-  db.query(sql, [id_tarea], (err, result) => {
+  db.query(sql, [id], (err, result) => {
     if (err) {
-      console.error('❌ Error al marcar tarea como completada:', err);
-      return res.status(500).json({ error: 'Error al marcar tarea como completada' });
+      console.error('❌ Error al completar tarea:', err);
+      return res.status(500).json({ error: 'Error al completar tarea' });
     }
-
-    res.json({ success: true, message: 'Tarea completada correctamente' });
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Tarea no encontrada' });
+    }
+    res.json({ success: true, message: 'Tarea completada exitosamente' });
   });
 });
-
 
 // -------------------- INICIAR SERVIDOR --------------------
 app.listen(3001, () => {
