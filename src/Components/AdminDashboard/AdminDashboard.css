@@ -1,4 +1,4 @@
-/* Variables de colores */
+/* Variables de colores personalizables para mantener coherencia en el diseño */
 :root {
   --primary-color: #07840d;
   --secondary-color: #3f37c9;
@@ -11,7 +11,7 @@
   --info-color: #43aa8b;
 }
 
-/* Reset y estilos base */
+/* Reset de márgenes, paddings y configuración de fuente base para todos los elementos */
 * {
   margin: 0;
   padding: 0;
@@ -19,13 +19,14 @@
   font-family: 'Segoe UI', 'Roboto', sans-serif;
 }
 
+/* Contenedor principal del panel de administración (usa flexbox) */
 .admin-container {
   display: flex;
   min-height: 100vh;
   background-color: #f5f7fa;
 }
 
-/* Sidebar moderno */
+/* Sidebar con diseño moderno y gradiente de colores */
 .admin-sidebar {
   width: 250px;
   background: linear-gradient(135deg, var(--dark-color), var(--primary-color));
@@ -37,10 +38,12 @@
   position: relative;
 }
 
+/* Estilo cuando el sidebar está colapsado (estrecho) */
 .admin-sidebar.collapsed {
   width: 80px;
 }
 
+/* Encabezado del sidebar */
 .sidebar-header {
   padding: 20px;
   display: flex;
@@ -49,6 +52,7 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* Título en el encabezado del sidebar */
 .sidebar-header h2 {
   font-size: 1.2rem;
   font-weight: 600;
@@ -56,6 +60,7 @@
   overflow: hidden;
 }
 
+/* Botón para colapsar/expandir el sidebar */
 .collapse-btn {
   background: none;
   border: none;
@@ -71,7 +76,7 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
-/* Contenedor del contenido del sidebar */
+/* Contenido del sidebar (scroll si es necesario) */
 .sidebar-content {
   flex: 1;
   display: flex;
@@ -79,6 +84,7 @@
   overflow-y: auto;
 }
 
+/* Navegación del sidebar */
 .sidebar-nav {
   padding: 20px 0;
   display: flex;
@@ -86,6 +92,7 @@
   gap: 8px;
 }
 
+/* Botones de navegación */
 .nav-btn {
   display: flex;
   align-items: center;
@@ -107,6 +114,7 @@
   color: white;
 }
 
+/* Estado activo del botón de navegación */
 .nav-btn.active {
   background: rgba(255, 255, 255, 0.2);
   color: white;
@@ -114,6 +122,7 @@
   position: relative;
 }
 
+/* Línea de acento al lado del botón activo */
 .nav-btn.active::before {
   content: '';
   position: absolute;
@@ -124,6 +133,7 @@
   background: var(--accent-color);
 }
 
+/* Ícono dentro de los botones de navegación */
 .nav-icon {
   font-size: 1.1rem;
   min-width: 24px;
@@ -131,7 +141,7 @@
   text-align: center;
 }
 
-/* Contenedor del botón de cerrar sesión (fijo) */
+/* Contenedor del botón de cerrar sesión (fijo en la parte inferior) */
 .logout-container {
   padding: 20px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -141,6 +151,7 @@
   background: linear-gradient(135deg, var(--dark-color), var(--primary-color));
 }
 
+/* Botón de cerrar sesión */
 .logout-btn {
   display: flex;
   align-items: center;
@@ -163,7 +174,7 @@
   font-size: 1.2rem;
 }
 
-/* Main content area */
+/* Área principal del contenido */
 .admin-main {
   flex: 1;
   display: flex;
@@ -171,6 +182,7 @@
   overflow: auto;
 }
 
+/* Encabezado del contenido principal */
 .content-header {
   padding: 20px;
   background: white;
@@ -183,13 +195,14 @@
   font-weight: 600;
 }
 
+/* Contenedor del contenido general */
 .content-container {
   flex: 1;
   padding: 20px;
   background-color: #f5f7fa;
 }
 
-/* Responsive design */
+/* Estilos responsive para pantallas pequeñas */
 @media (max-width: 768px) {
   .admin-sidebar {
     position: fixed;
@@ -197,22 +210,22 @@
     z-index: 100;
     transform: translateX(-100%);
   }
-  
+
   .admin-sidebar.collapsed {
     transform: translateX(0);
     width: 70px;
   }
-  
+
   .admin-sidebar:not(.collapsed) {
     transform: translateX(0);
   }
-  
+
   .admin-main {
     margin-left: 0;
   }
 }
 
-/* Efectos y animaciones */
+/* Efecto visual en botones al hacer clic */
 button {
   transition: all 0.2s ease;
 }
@@ -221,7 +234,7 @@ button:active {
   transform: scale(0.98);
 }
 
-/* Estilos para cuando el sidebar está colapsado */
+/* Ajustes visuales cuando el sidebar está colapsado */
 .admin-sidebar.collapsed .sidebar-header h2,
 .admin-sidebar.collapsed .nav-btn span:not(.nav-icon),
 .admin-sidebar.collapsed .logout-btn span:not(.logout-icon) {

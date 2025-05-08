@@ -1,26 +1,36 @@
+// Importación de hooks y librerías necesarias
 import { useState } from 'react';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
 import './Login.css';
 import logo from './assets/logo.png';
 
+// Componente funcional para el formulario de login
 const Login = () => {
+  // Estado para mostrar u ocultar la contraseña
   const [showPassword, setShowPassword] = useState(false);
+
+  // Estado para las credenciales del usuario
   const [credentials, setCredentials] = useState({
     username: '',
     password: ''
   });
+
+  // Estado para manejar errores y estado de carga
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  
+
+  // Hook para navegar entre rutas
   const navigate = useNavigate();
 
+  // Maneja el envío del formulario
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
     try {
+      // Petición POST al backend para autenticación
       const response = await fetch('http://localhost:3001/login', {
         method: 'POST',
         headers: { 
@@ -33,20 +43,21 @@ const Login = () => {
         })
       });
 
+      // Se convierte la respuesta en JSON
       const data = await response.json();
-      
+
+      // Si hubo error, se lanza una excepción
       if (!response.ok) {
         throw new Error(data.error || 'Error en la autenticación');
       }
 
+      // Si el login fue exitoso
       if (data.success) {
-        // Guardar datos de usuario
+        // Se guarda el usuario en localStorage
         localStorage.setItem('user', JSON.stringify(data.user));
-        localStorage.setItem('id_usuario', JSON.stringify(data.user.id_usuario)); // 🔥 ENVOLVERLO EN JSON.stringify
+        localStorage.setItem('id_usuario', JSON.stringify(data.user.id_usuario));
 
-        console.log('👤 Usuario logueado:', data.user);
-
-        // Redirección por rol
+        // Redirige según el rol del usuario
         switch (data.user.role) {
           case 1: navigate('/AdminDashboard'); break;
           case 2: navigate('/Almacenista'); break;
@@ -56,10 +67,12 @@ const Login = () => {
         }
       }
     } catch (err) {
+      // Muestra mensaje si no se puede conectar o si hay otro error
       setError(err.message.includes('Failed to fetch') 
         ? 'No se pudo conectar al servidor' 
         : err.message);
     } finally {
+      // Finaliza el estado de carga
       setLoading(false);
     }
   };
@@ -74,9 +87,12 @@ const Login = () => {
           </div>
         </div>
 
+        {/* Formulario de login */}
         <form onSubmit={handleSubmit} className="login-form">
+          {/* Muestra mensaje de error si existe */}
           {error && <div className="error-message">{error}</div>}
           
+          {/* Campo para el nombre de usuario */}
           <div className="input-group">
             <label htmlFor="username">
               <span className="input-icon">👤</span>
@@ -96,6 +112,7 @@ const Login = () => {
             />
           </div>
 
+          {/* Campo para la contraseña con opción de mostrarla */}
           <div className="input-group">
             <label htmlFor="password">
               <span className="input-icon">🔒</span>
@@ -129,6 +146,7 @@ const Login = () => {
             </div>
           </div>
 
+          {/* Botón para enviar el formulario */}
           <button 
             type="submit" 
             className="login-button" 
@@ -139,6 +157,7 @@ const Login = () => {
           </button>
         </form>
 
+        {/* Sección informativa del sistema */}
         <div className="about-section">
           <div className="about-content">
             <h3>Acerca del sistema</h3>

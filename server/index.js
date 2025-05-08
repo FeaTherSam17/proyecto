@@ -1,35 +1,41 @@
-import express from 'express';
-import mysql from 'mysql';
-import cors from 'cors';
 
+import express from 'express'; // Framework para crear el servidor y manejar rutas
+import mysql from 'mysql';     // Módulo para conectarse a bases de datos MySQL
+import cors from 'cors';       // Middleware para permitir solicitudes desde otros orígenes (CORS)
+
+// Inicialización de la aplicación Express
 const app = express();
 
-// Middleware de CORS
+// Configuración del middleware CORS
 app.use(cors({
-  origin: 'http://localhost:3000',
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Cache-Control', 'Authorization'], // Añadir las cabeceras necesarias
+  origin: 'http://localhost:3000', // Permite solo solicitudes desde este origen
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Métodos HTTP permitidos
+  allowedHeaders: ['Content-Type', 'Cache-Control', 'Authorization'], // Cabeceras que el cliente puede enviar
 }));
 
-
+// Middleware para que Express pueda interpretar cuerpos JSON en las solicitudes
 app.use(express.json());
 
-// Conexión a la base de datos MySQL
+// Configuración de la conexión a la base de datos MySQL
 const db = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: '',
-  database: 'invernadero',
-  port: 3306
+  host: 'localhost',     // Dirección del servidor de la base de datos (localhost = el mismo equipo)
+  user: 'root',          // Usuario con el que se conectará
+  password: '',          // Contraseña del usuario (vacía en este caso)
+  database: 'invernadero', // Nombre de la base de datos que se utilizará
+  port: 3306             // Puerto por defecto de MySQL
 });
 
+// Intento de conexión a la base de datos
 db.connect((err) => {
   if (err) {
+    // Si hay un error, se muestra en consola
     console.error('❌ Error de conexión a MySQL:', err);
   } else {
+    // Si la conexión es exitosa, se muestra un mensaje de éxito
     console.log('✅ Conectado a MySQL');
   }
 });
+
 
 // -------------------- LOGIN --------------------
 app.post('/login', (req, res) => {

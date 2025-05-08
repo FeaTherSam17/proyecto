@@ -1,43 +1,46 @@
-/* Contenedor principal */
+/* Contenedor principal que ocupa toda la pantalla y centra su contenido */
 .login-container {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
+  min-height: 100vh; /* altura mínima del 100% del alto de la ventana */
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); /* fondo con degradado */
+  display: flex; /* usamos flexbox para alinear contenido */
+  justify-content: center; /* centrado horizontal */
+  align-items: center; /* centrado vertical */
+  padding: 20px; /* espacio interno */
 }
 
-/* Tarjeta del login */
+/* Caja donde va el login, con fondo blanco y bordes redondeados */
 .login-card {
   width: 100%;
-  max-width: 420px;
+  max-width: 420px; /* tamaño máximo */
   background: white;
   border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08); /* sombra suave */
+  overflow: hidden; /* oculta cualquier desbordamiento */
 }
 
-/* Encabezado */
+/* Parte superior con el fondo verde donde va el logo y el título */
 .login-header {
-  background-color: #4CAF50;
+  background-color: #4CAF50; /* verde */
   padding: 30px 20px;
   text-align: center;
 }
 
+/* Contenedor del logo y texto */
 .logo-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 15px;
+  gap: 15px; /* espacio entre el logo y el texto */
 }
 
+/* Imagen del logo */
 .logo {
   width: 80px;
   height: 80px;
-  object-fit: contain;
+  object-fit: contain; /* mantiene proporciones */
 }
 
+/* Título debajo del logo */
 .logo-container h1 {
   color: #ffffff;
   font-size: 1.8rem;
@@ -45,21 +48,22 @@
   font-weight: 600;
 }
 
-/* Formulario */
+/* Contenedor del formulario */
 .login-form {
   padding: 30px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 20px; /* espacio entre inputs */
 }
 
-/* Grupo de inputs */
+/* Cada grupo de input con su etiqueta */
 .input-group {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
+/* Etiqueta del input */
 .input-group label {
   display: flex;
   align-items: center;
@@ -69,25 +73,26 @@
   font-size: 0.95rem;
 }
 
-/* Campo de texto */
+/* Estilo base para los inputs de texto */
 .input-group input {
   width: 100%;
   padding: 12px 15px;
-  border: 1px solid #d1d5db;
+  border: 1px solid #d1d5db; /* borde gris claro */
   border-radius: 8px;
   font-size: 0.95rem;
   height: 46px;
   box-sizing: border-box;
-  transition: all 0.3s ease;
+  transition: all 0.3s ease; /* animación suave */
 }
 
+/* Estilo cuando el input está enfocado */
 .input-group input:focus {
   outline: none;
-  border-color: #4CAF50;
-  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+  border-color: #4CAF50; /* cambia el borde a verde */
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2); /* resplandor suave verde */
 }
 
-/* --- Campo de contraseña especial --- */
+/* Campo especial para contraseña, con botón de mostrar */
 .password-input {
   position: relative;
   width: 100%;
@@ -95,17 +100,18 @@
   align-items: center;
 }
 
+/* Input de contraseña con espacio para el ícono al lado derecho */
 .password-input input {
   flex: 1;
-  padding-right: 40px; /* deja espacio para el ícono sin que lo empuje demasiado */
+  padding-right: 40px; /* evita que el texto choque con el ícono */
 }
 
-/* Botón de ver/ocultar contraseña */
+/* Botón para alternar mostrar/ocultar contraseña */
 .toggle-password {
   position: absolute;
   top: 50%;
   right: 10px;
-  transform: translateY(-50%);
+  transform: translateY(-50%); /* centra verticalmente */
   background: transparent;
   border: none;
   padding: 0;
@@ -117,18 +123,18 @@
   justify-content: center;
 }
 
+/* Ícono del ojo */
 .eye-icon {
   width: 20px;
   height: 20px;
-  color: #666;
+  color: #666; /* gris oscuro */
 }
 
-
-/* Botón de login */
+/* Botón de iniciar sesión */
 .login-button {
   width: 100%;
   padding: 14px;
-  background-color: #4CAF50;
+  background-color: #4CAF50; /* verde */
   color: white;
   border: none;
   border-radius: 8px;
@@ -136,27 +142,30 @@
   font-weight: 500;
   cursor: pointer;
   margin-top: 10px;
-  transition: background-color 0.3s;
+  transition: background-color 0.3s; /* animación en hover */
 }
 
+/* Cambia el verde al pasar el mouse */
 .login-button:hover {
   background-color: #3e8e41;
 }
 
-/* Sección Acerca de */
+/* Sección "Acerca de" al final de la tarjeta */
 .about-section {
-  background-color: #f9f9f9;
+  background-color: #f9f9f9; /* gris muy claro */
   padding: 20px;
-  border-top: 1px solid #eee;
+  border-top: 1px solid #eee; /* línea divisoria arriba */
   text-align: center;
 }
 
+/* Título dentro de la sección */
 .about-content h3 {
   color: #4CAF50;
   margin-bottom: 8px;
   font-size: 1.1rem;
 }
 
+/* Texto debajo del título */
 .about-content p {
   color: #666;
   font-size: 0.85rem;
@@ -164,11 +173,11 @@
   line-height: 1.4;
 }
 
-/* Mensaje de error */
+/* Estilo del mensaje de error */
 .error-message {
-  background-color: #ffe0e0;
-  border: 1px solid #ff9999;
-  color: #cc0000;
+  background-color: #ffe0e0; /* fondo rosado */
+  border: 1px solid #ff9999; /* borde rosado */
+  color: #cc0000; /* rojo oscuro para el texto */
   padding: 10px 15px;
   border-radius: 8px;
   font-size: 0.9rem;
