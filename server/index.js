@@ -37,17 +37,19 @@ db.connect((err) => {
 });
 
 
+//DOCUMENTAR LOS METODOS HTTP Y LA INICIALIZACION DEL SERVIDOR
+
+
+
 // -------------------- LOGIN --------------------
 app.post('/login', (req, res) => {
   const { username, password } = req.body;
-
   if (!username || !password) {
     return res.status(400).json({
       success: false,
       error: 'Usuario y contraseña son requeridos'
     });
   }
-
   const sql = 'SELECT * FROM usuarios WHERE username = ?';
   db.query(sql, [username], (err, results) => {
     if (err) return res.status(500).json({ success: false, error: 'Error en la base de datos' });
@@ -55,16 +57,14 @@ app.post('/login', (req, res) => {
     if (results.length === 0) {
       return res.status(401).json({ success: false, error: 'Usuario no encontrado' });
     }
-
     const user = results[0];
     if (user.password !== password) {
       return res.status(401).json({ success: false, error: 'Contraseña incorrecta' });
     }
-
     res.json({
       success: true,
       user: {
-        id_usuario: user.id_usuario,  // Cambiado a id_usuario para consistencia
+        id_usuario: user.id_usuario, 
         username: user.username,
         role: user.id_rol,
         nombre: user.nombre,
@@ -93,30 +93,24 @@ app.get('/usuarios', (req, res) => {
       DATE_FORMAT(fecha_creacion, '%d/%m/%Y') AS 'Fecha de creación'
     FROM usuarios
   `;
-
   db.query(sql, (err, results) => {
     if (err) return res.status(500).json({ error: 'Error al obtener usuarios' });
     res.json(results);
   });
 });
-
 app.post('/usuarios', (req, res) => {
   const { nombre, apellidoPat, apellidoMat, username, role, password } = req.body;
-
   if (!nombre || !apellidoPat || !username || !password || !role) {
     return res.status(400).json({ success: false, error: 'Faltan campos obligatorios' });
   }
-
   const validRoles = [1, 2, 3, 4];
   if (!validRoles.includes(role)) {
     return res.status(400).json({ success: false, error: 'Rol no válido' });
   }
-
   const sql = `
     INSERT INTO usuarios (nombre, apellidoP, apellidoM, username, password, id_rol, fecha_creacion)
     VALUES (?, ?, ?, ?, ?, ?, NOW())
   `;
-
   db.query(sql, [nombre, apellidoPat, apellidoMat, username, password, role], (err) => {
     if (err) return res.status(500).json({ success: false, error: 'Error al insertar usuario' });
     res.json({ success: true, message: 'Usuario creado correctamente' });
