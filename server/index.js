@@ -43,28 +43,40 @@ db.connect((err) => {
 
 // -------------------- LOGIN --------------------
 app.post('/login', (req, res) => {
+  // Se extraen usuario y contraseña desde el cuerpo de la solicitud
   const { username, password } = req.body;
+
+  // Verificación de campos obligatorios
   if (!username || !password) {
     return res.status(400).json({
       success: false,
       error: 'Usuario y contraseña son requeridos'
     });
   }
+
+  // Consulta para buscar el usuario en la base de datos
   const sql = 'SELECT * FROM usuarios WHERE username = ?';
   db.query(sql, [username], (err, results) => {
-    if (err) return res.status(500).json({ success: false, error: 'Error en la base de datos' });
+    if (err) 
+      return res.status(500).json({ success: false, error: 'Error en la base de datos' });
 
+    // Verifica si el usuario existe
     if (results.length === 0) {
       return res.status(401).json({ success: false, error: 'Usuario no encontrado' });
     }
+
     const user = results[0];
+
+    // Verifica la contraseña (en este caso, no hay cifrado)
     if (user.password !== password) {
       return res.status(401).json({ success: false, error: 'Contraseña incorrecta' });
     }
+
+    // Si es válido, responde con los datos del usuario
     res.json({
       success: true,
       user: {
-        id_usuario: user.id_usuario, 
+        id_usuario: user.id_usuario,
         username: user.username,
         role: user.id_rol,
         nombre: user.nombre,
@@ -75,8 +87,10 @@ app.post('/login', (req, res) => {
     });
   });
 });
+
 // -------------------- USUARIOS --------------------
 app.get('/usuarios', (req, res) => {
+  // Consulta SQL que retorna los datos de los usuarios formateados
   const sql = `
     SELECT 
       id_usuario AS ID,
@@ -99,14 +113,21 @@ app.get('/usuarios', (req, res) => {
   });
 });
 app.post('/usuarios', (req, res) => {
+  // Se extraen los datos del cuerpo de la solicitud
   const { nombre, apellidoPat, apellidoMat, username, role, password } = req.body;
+
+  // Validación de campos obligatorios
   if (!nombre || !apellidoPat || !username || !password || !role) {
     return res.status(400).json({ success: false, error: 'Faltan campos obligatorios' });
   }
+
+  // Validación del rol
   const validRoles = [1, 2, 3, 4];
   if (!validRoles.includes(role)) {
     return res.status(400).json({ success: false, error: 'Rol no válido' });
   }
+
+  // Inserta un nuevo usuario en la base de datos
   const sql = `
     INSERT INTO usuarios (nombre, apellidoP, apellidoM, username, password, id_rol, fecha_creacion)
     VALUES (?, ?, ?, ?, ?, ?, NOW())
@@ -121,6 +142,7 @@ app.put('/usuarios/:id', (req, res) => {
   const { id } = req.params;
   const { nombre, apellidoPat, apellidoMat, username, password, role } = req.body;
 
+  // Actualiza los datos del usuario según su ID
   const sql = `
     UPDATE usuarios SET 
       nombre = ?, 
@@ -131,7 +153,6 @@ app.put('/usuarios/:id', (req, res) => {
       id_rol = ? 
     WHERE id_usuario = ?
   `;
-
   db.query(sql, [nombre, apellidoPat, apellidoMat, username, password, role, id], (err) => {
     if (err) return res.status(500).json({ success: false, error: 'Error al actualizar usuario' });
     res.json({ success: true, message: 'Usuario actualizado correctamente' });
@@ -140,16 +161,19 @@ app.put('/usuarios/:id', (req, res) => {
 
 app.delete('/usuarios/:id', (req, res) => {
   const { id } = req.params;
-  const sql = 'DELETE FROM usuarios WHERE id_usuario = ?';
 
+  // Elimina un usuario por ID
+  const sql = 'DELETE FROM usuarios WHERE id_usuario = ?';
   db.query(sql, [id], (err) => {
     if (err) return res.status(500).json({ success: false, error: 'Error al eliminar usuario' });
     res.json({ success: true, message: 'Usuario eliminado correctamente' });
   });
 });
 
+
 // -------------------- TAREAS --------------------
 app.get('/tareas', (req, res) => {
+  // Consulta que une tareas con usuarios asignados (si los hay)
   const sql = `
     SELECT 
       t.id_tarea,
@@ -164,7 +188,6 @@ app.get('/tareas', (req, res) => {
     LEFT JOIN usuarios_tareas ut ON t.id_tarea = ut.id_tarea
     LEFT JOIN usuarios u ON ut.id_usuario = u.id_usuario
   `;
-
   db.query(sql, (err, results) => {
     if (err) return res.status(500).json({ error: 'Error al obtener tareas' });
     res.json(results);
@@ -174,10 +197,12 @@ app.get('/tareas', (req, res) => {
 app.post('/tareas', (req, res) => {
   const { titulo, descripcion, prioridad, fecha_limite, id_usuario } = req.body;
 
+  // Validación de campos
   if (!titulo || !descripcion || !prioridad || !fecha_limite || !id_usuario) {
     return res.status(400).json({ success: false, error: 'Todos los campos son requeridos' });
   }
 
+  // Inserta la tarea
   const insertTaskSQL = `
     INSERT INTO Tareas (titulo, descripcion, prioridad, fecha_limite, completada)
     VALUES (?, ?, ?, ?, false)
@@ -186,8 +211,8 @@ app.post('/tareas', (req, res) => {
   db.query(insertTaskSQL, [titulo, descripcion, prioridad, fecha_limite], (err, result) => {
     if (err) return res.status(500).json({ success: false, error: 'Error al insertar tarea' });
 
+    // Asocia la tarea al usuario
     const id_tarea = result.insertId;
-
     const assignSQL = `
       INSERT INTO usuarios_tareas (id_usuario, id_tarea)
       VALUES (?, ?)
@@ -204,6 +229,7 @@ app.post('/tareas', (req, res) => {
 app.delete('/tareas/:id', (req, res) => {
   const { id } = req.params;
 
+  // Verifica que la tarea exista
   const checkTaskSQL = 'SELECT * FROM Tareas WHERE id_tarea = ?';
   db.query(checkTaskSQL, [id], (err, results) => {
     if (err) return res.status(500).json({ success: false, error: 'Error al verificar tarea' });
@@ -212,6 +238,7 @@ app.delete('/tareas/:id', (req, res) => {
       return res.status(404).json({ success: false, error: 'Tarea no encontrada' });
     }
 
+    // Elimina la tarea si existe
     const deleteTaskSQL = 'DELETE FROM Tareas WHERE id_tarea = ?';
     db.query(deleteTaskSQL, [id], (err2) => {
       if (err2) return res.status(500).json({ success: false, error: 'Error al eliminar tarea' });
@@ -220,11 +247,13 @@ app.delete('/tareas/:id', (req, res) => {
     });
   });
 });
-
 // -------------------- REPORTES --------------------
-app.get('/reportes/ventas_totales', (req, res) => {
-  const { start_date, end_date } = req.query;
 
+// Endpoint para obtener el resumen de todas las ventas en un periodo
+app.get('/reportes/ventas_totales', (req, res) => {
+  const { start_date, end_date } = req.query; // Se obtienen las fechas de inicio y fin desde la query
+
+  // Validación: ambas fechas deben estar presentes
   if (!start_date || !end_date) {
     return res.status(400).json({ 
       success: false,
@@ -232,6 +261,7 @@ app.get('/reportes/ventas_totales', (req, res) => {
     });
   }
 
+  // Consulta SQL para obtener las ventas realizadas entre las fechas indicadas
   const sql = `
     SELECT 
       v.id_venta,
@@ -248,13 +278,22 @@ app.get('/reportes/ventas_totales', (req, res) => {
     ORDER BY v.fecha DESC
   `;
 
+  // Ejecuta la consulta con los parámetros
   db.query(sql, [start_date, end_date], (err, results) => {
-    if (err) return res.status(500).json({ success: false, error: 'Error en la base de datos', details: err.message });
+    if (err) {
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Error en la base de datos', 
+        details: err.message 
+      });
+    }
 
+    // Calcula el total general de todas las ventas en el periodo
     const totalGeneral = results.reduce((sum, venta) => {
       return sum + parseFloat(venta.total_calculado || 0);
     }, 0);
 
+    // Devuelve las ventas con un resumen
     res.json({
       success: true,
       data: {
@@ -270,10 +309,11 @@ app.get('/reportes/ventas_totales', (req, res) => {
   });
 });
 
-
+// Endpoint para obtener los productos vendidos en una venta específica
 app.get('/reportes/productos_venta/:id', (req, res) => {
   const idVenta = req.params.id;
 
+  // Consulta SQL para traer los productos vendidos en la venta con id dado
   const sql = `
     SELECT 
       p.nombre AS nombre,
@@ -285,6 +325,7 @@ app.get('/reportes/productos_venta/:id', (req, res) => {
     WHERE dv.id_venta = ?
   `;
 
+  // Ejecuta la consulta
   db.query(sql, [idVenta], (err, resultados) => {
     if (err) {
       console.error('❌ Error al obtener productos vendidos:', err);
@@ -295,6 +336,7 @@ app.get('/reportes/productos_venta/:id', (req, res) => {
       });
     }
 
+    // Si no hay resultados, devuelve una respuesta vacía
     if (!resultados || resultados.length === 0) {
       return res.status(200).json({
         success: true,
@@ -303,6 +345,7 @@ app.get('/reportes/productos_venta/:id', (req, res) => {
       });
     }
 
+    // Devuelve los productos de la venta
     res.status(200).json({
       success: true,
       productos: resultados
@@ -311,10 +354,12 @@ app.get('/reportes/productos_venta/:id', (req, res) => {
 });
 
 
-
 // -------------------- PROVEEDORES --------------------
+
+// Obtener todos los proveedores ordenados alfabéticamente
 app.get('/suppliers', (req, res) => {
   const sql = 'SELECT * FROM Proveedores ORDER BY nombre ASC';
+
   db.query(sql, (err, results) => {
     if (err) {
       console.error('Error al obtener proveedores:', err);
@@ -324,6 +369,7 @@ app.get('/suppliers', (req, res) => {
         details: err.message 
       });
     }
+
     res.json({ 
       success: true, 
       suppliers: results 
@@ -331,9 +377,11 @@ app.get('/suppliers', (req, res) => {
   });
 });
 
+// Crear un nuevo proveedor
 app.post('/suppliers', (req, res) => {
   const { nombre, contacto, telefono, email, factura } = req.body;
-  
+
+  // Validación: campos obligatorios
   if (!nombre || !contacto || !telefono || !email) {
     return res.status(400).json({
       success: false,
@@ -341,6 +389,7 @@ app.post('/suppliers', (req, res) => {
     });
   }
 
+  // Inserta el nuevo proveedor en la base de datos
   const sql = 'INSERT INTO Proveedores SET ?';
   db.query(sql, { nombre, contacto, telefono, email, factura }, (err, result) => {
     if (err) {
@@ -351,7 +400,7 @@ app.post('/suppliers', (req, res) => {
         details: err.message
       });
     }
-    
+
     res.json({
       success: true,
       id: result.insertId,
@@ -360,10 +409,12 @@ app.post('/suppliers', (req, res) => {
   });
 });
 
+// Actualizar los datos de un proveedor existente
 app.put('/suppliers/:id', (req, res) => {
   const { id } = req.params;
   const { nombre, contacto, telefono, email, factura } = req.body;
 
+  // Validación de campos
   if (!nombre || !contacto || !telefono || !email) {
     return res.status(400).json({
       success: false,
@@ -371,6 +422,7 @@ app.put('/suppliers/:id', (req, res) => {
     });
   }
 
+  // Actualiza el proveedor con el ID dado
   const sql = 'UPDATE Proveedores SET ? WHERE id_proveedor = ?';
   db.query(sql, [{ nombre, contacto, telefono, email, factura }, id], (err) => {
     if (err) {
@@ -381,7 +433,7 @@ app.put('/suppliers/:id', (req, res) => {
         details: err.message
       });
     }
-    
+
     res.json({
       success: true,
       message: 'Proveedor actualizado exitosamente'
@@ -389,9 +441,10 @@ app.put('/suppliers/:id', (req, res) => {
   });
 });
 
+// Eliminar un proveedor por su ID
 app.delete('/suppliers/:id', (req, res) => {
   const { id } = req.params;
-  
+
   const sql = 'DELETE FROM Proveedores WHERE id_proveedor = ?';
   db.query(sql, [id], (err) => {
     if (err) {
@@ -402,7 +455,7 @@ app.delete('/suppliers/:id', (req, res) => {
         details: err.message
       });
     }
-    
+
     res.json({
       success: true,
       message: 'Proveedor eliminado exitosamente'
@@ -410,8 +463,223 @@ app.delete('/suppliers/:id', (req, res) => {
   });
 });
 
-
 // -------------------- OPERACIONES PROVEEDORES --------------------
+
+// Obtener todas las operaciones de proveedores con su información relacionada
+app.get('/operaciones-proveedores', (req, res) => {
+  const sql = `
+    SELECT 
+      op.id_operacion,
+      op.tipo,
+      op.fecha,
+      op.total,
+      op.descripcion,
+      p.id_proveedor,
+      p.nombre AS proveedor,
+      p.factura AS factura_proveedor -- Obtenemos la factura del proveedor
+    FROM operaciones_proveedores op
+    JOIN Proveedores p ON op.id_proveedor = p.id_proveedor
+    ORDER BY op.fecha DESC
+  `;
+  
+  // Ejecutamos la consulta a la base de datos
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error('Error al obtener operaciones:', err);
+      return res.status(500).json({
+        success: false,
+        error: 'Error al obtener operaciones',
+        details: err.message
+      });
+    }
+    
+    // Enviamos las operaciones encontradas
+    res.json({
+      success: true,
+      operaciones: results
+    });
+  });
+});
+
+// Crear una nueva operación para un proveedor
+app.post('/operaciones-proveedores', (req, res) => {
+  const { tipo, id_proveedor, fecha, total, descripcion } = req.body;
+  
+  // Validamos campos obligatorios (excepto descripción)
+  if (!tipo || !id_proveedor || !fecha || !total) {
+    return res.status(400).json({
+      success: false,
+      error: 'Todos los campos son obligatorios excepto descripción'
+    });
+  }
+
+  const sql = 'INSERT INTO operaciones_proveedores SET ?';
+  // Insertamos la nueva operación en la base de datos
+  db.query(sql, { tipo, id_proveedor, fecha, total, descripcion }, (err, result) => {
+    if (err) {
+      console.error('Error al crear operación:', err);
+      return res.status(500).json({
+        success: false,
+        error: 'Error al crear operación',
+        details: err.message
+      });
+    }
+    
+    // Obtenemos los datos completos de la operación recién insertada
+    const getSql = `
+      SELECT 
+        op.*, 
+        p.nombre AS proveedor, 
+        p.factura AS factura_proveedor
+      FROM operaciones_proveedores op
+      JOIN Proveedores p ON op.id_proveedor = p.id_proveedor
+      WHERE op.id_operacion = ?
+    `;
+    
+    db.query(getSql, [result.insertId], (err, results) => {
+      if (err || !results.length) {
+        return res.json({
+          success: true,
+          id: result.insertId,
+          message: 'Operación creada pero no se pudo recuperar los detalles'
+        });
+      }
+      
+      // Enviamos los datos completos de la operación recién creada
+      res.json({
+        success: true,
+        operacion: results[0],
+        message: 'Operación creada exitosamente'
+      });
+    });
+  });
+});
+
+// Eliminar una operación de proveedor por su ID
+app.delete('/operaciones-proveedores/:id', (req, res) => {
+  const { id } = req.params;
+  
+  const sql = 'DELETE FROM operaciones_proveedores WHERE id_operacion = ?';
+  // Ejecutamos el borrado
+  db.query(sql, [id], (err) => {
+    if (err) {
+      console.error('Error al eliminar operación:', err);
+      return res.status(500).json({
+        success: false,
+        error: 'Error al eliminar operación',
+        details: err.message
+      });
+    }
+    
+    // Confirmamos que se eliminó correctamente
+    res.json({
+      success: true,
+      message: 'Operación eliminada exitosamente'
+    });
+  });
+});
+
+
+// --------------------- SECCION DEL ALMACENISTA --------------------
+
+// Ruta para agregar nuevo producto al inventario
+app.post('/productos', (req, res) => {
+  const { nombre, id_categoria, precio, stock, id_proveedor } = req.body;
+
+  // Validación de campos obligatorios
+  if (!nombre || !id_categoria || !precio) {
+    return res.status(400).json({ 
+      success: false, 
+      mensaje: 'Nombre, categoría y precio son obligatorios' 
+    });
+  }
+
+  const nuevoProducto = {
+    nombre,
+    id_categoria,
+    precio: parseFloat(precio),
+    stock: parseInt(stock) || 0,  // Si no hay stock se usa 0 por defecto
+    id_proveedor: id_proveedor || null  // El proveedor es opcional
+  };
+
+  // Consulta para insertar un nuevo producto
+  const sql = `
+    INSERT INTO producto 
+    (nombre, id_categoria, precio, stock, id_proveedor)
+    VALUES (?, ?, ?, ?, ?)
+  `;
+
+  db.query(sql, [
+    nuevoProducto.nombre,
+    nuevoProducto.id_categoria,
+    nuevoProducto.precio,
+    nuevoProducto.stock,
+    nuevoProducto.id_proveedor
+  ], (err, result) => {
+    if (err) {
+      console.error('❌ Error al insertar producto:', err);
+      return res.status(500).json({ 
+        success: false, 
+        mensaje: 'Error del servidor al guardar el producto',
+        error: err.message 
+      });
+    }
+
+    // Confirmamos la creación exitosa
+    res.status(201).json({
+      success: true,
+      mensaje: 'Producto registrado con éxito',
+      id: result.insertId
+    });
+  });
+});
+
+// Ruta para obtener todos los productos
+app.get('/productos', (req, res) => {
+  const sql = `
+    SELECT 
+      p.id_producto,
+      p.nombre,
+      c.nombre AS categoria,
+      p.precio,
+      p.stock,  -- Nos aseguramos de traer el stock disponible
+      pr.nombre AS proveedor
+    FROM producto p
+    LEFT JOIN categorias c ON p.id_categoria = c.id_categoria
+    LEFT JOIN proveedores pr ON p.id_proveedor = pr.id_proveedor
+  `;
+
+  // Ejecutamos la consulta para obtener los productos
+  db.query(sql, (err, resultados) => {
+    if (err) {
+      console.error('❌ Error al obtener productos:', err);
+      return res.status(500).json({ 
+        success: false,
+        message: 'Error al obtener productos',
+        error: err.message
+      });
+    }
+
+    // Si no hay productos registrados
+    if (!resultados || resultados.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: 'No se encontraron productos',
+        data: []
+      });
+    }
+
+    // Enviamos los productos obtenidos
+    res.status(200).json({
+      success: true,
+      message: 'Productos obtenidos correctamente',
+      data: resultados
+    });
+  });
+});
+// -------------------- OPERACIONES PROVEEDORES --------------------
+
+// Obtener todas las operaciones con información del proveedor
 app.get('/operaciones-proveedores', (req, res) => {
   const sql = `
     SELECT 
@@ -445,9 +713,11 @@ app.get('/operaciones-proveedores', (req, res) => {
   });
 });
 
+// Registrar una nueva operación de proveedor
 app.post('/operaciones-proveedores', (req, res) => {
   const { tipo, id_proveedor, fecha, total, descripcion } = req.body;
   
+  // Validación de campos requeridos
   if (!tipo || !id_proveedor || !fecha || !total) {
     return res.status(400).json({
       success: false,
@@ -466,7 +736,7 @@ app.post('/operaciones-proveedores', (req, res) => {
       });
     }
     
-    // Obtener la operación recién creada con datos del proveedor
+    // Obtener los detalles de la operación recién insertada
     const getSql = `
       SELECT 
         op.*, 
@@ -495,6 +765,7 @@ app.post('/operaciones-proveedores', (req, res) => {
   });
 });
 
+// Eliminar una operación de proveedor
 app.delete('/operaciones-proveedores/:id', (req, res) => {
   const { id } = req.params;
   
@@ -514,8 +785,12 @@ app.delete('/operaciones-proveedores/:id', (req, res) => {
       message: 'Operación eliminada exitosamente'
     });
   });
-});// --------------------- SECCION DEL ALMACENISTA --------------------
-// Ruta para agregar nuevo producto
+});
+
+
+// --------------------- SECCION DEL ALMACENISTA --------------------
+
+// Registrar un nuevo producto
 app.post('/productos', (req, res) => {
   const { nombre, id_categoria, precio, stock, id_proveedor } = req.body;
 
@@ -531,7 +806,7 @@ app.post('/productos', (req, res) => {
     nombre,
     id_categoria,
     precio: parseFloat(precio),
-    stock: parseInt(stock) || 0,  // 👈 aquí ya usamos stock directo
+    stock: parseInt(stock) || 0,  // Valor por defecto si no se especifica
     id_proveedor: id_proveedor || null
   };
 
@@ -565,7 +840,7 @@ app.post('/productos', (req, res) => {
   });
 });
 
-// Ruta para obtener productos// Ruta para obtener productos
+// Obtener todos los productos con su categoría y proveedor
 app.get('/productos', (req, res) => {
   const sql = `
     SELECT 
@@ -573,7 +848,7 @@ app.get('/productos', (req, res) => {
       p.nombre,
       c.nombre AS categoria,
       p.precio,
-      p.stock,  -- Aseguramos que estamos tomando 'stock' en lugar de 'cantidad'
+      p.stock,  -- Aseguramos que estamos tomando 'stock'
       pr.nombre AS proveedor
     FROM producto p
     LEFT JOIN categorias c ON p.id_categoria = c.id_categoria
@@ -608,9 +883,10 @@ app.get('/productos', (req, res) => {
 
 
 // ---------------------- SECCION DEL CAJERO --------------------
-// Ruta para obtener categorías
+
+// Obtener todas las categorías
 app.get('/categorias', (req, res) => {
-  const sql = 'SELECT * FROM categorias';  // Consulta a la base de datos
+  const sql = 'SELECT * FROM categorias';
   db.query(sql, (err, resultados) => {
     if (err) {
       console.error('❌ Error al obtener categorías:', err);
@@ -637,7 +913,7 @@ app.get('/categorias', (req, res) => {
   });
 });
 
-// Ruta para registrar una venta
+// Registrar una venta con sus detalles
 app.post('/ventas', (req, res) => {
   const { fecha, total, items } = req.body;
 
@@ -680,8 +956,10 @@ app.post('/ventas', (req, res) => {
   });
 });
 
+
 // --------------------- SECCION DEL JARDINERO --------------------
-// -------------------- TAREAS JARDINERO --------------------
+
+// Obtener tareas pendientes asignadas a un jardinero específico
 app.get('/tareas/jardinero/:idJardinero', (req, res) => {
   const { idJardinero } = req.params;
   console.log(`🔍 Solicitando tareas para jardinero ID: ${idJardinero}`);
@@ -712,7 +990,7 @@ app.get('/tareas/jardinero/:idJardinero', (req, res) => {
   });
 });
 
-// -------------------- COMPLETAR TAREA --------------------
+// Marcar una tarea como completada
 app.put('/tareas/:id/completar', (req, res) => {
   const { id } = req.params;
   console.log(`✅ Completando tarea ID: ${id}`);
@@ -730,6 +1008,7 @@ app.put('/tareas/:id/completar', (req, res) => {
     res.json({ success: true, message: 'Tarea completada exitosamente' });
   });
 });
+
 
 // -------------------- INICIAR SERVIDOR --------------------
 app.listen(3001, () => {
