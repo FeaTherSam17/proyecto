@@ -18,15 +18,12 @@ const JardineroPanel = () => {
           console.error('No se encontró ID de jardinero');
           return;
         }
-    
         const respuesta = await fetch(`http://localhost:3001/tareas/jardinero/${idJardinero}`);
         const datos = await respuesta.json();
-    
         if (!respuesta.ok) {
           console.error('Error al obtener tareas:', datos.error || 'Error desconocido');
           throw new Error(datos.error || 'Error al cargar tareas');
         }
-    
         setTareas(datos.tareas || []);
       } catch (error) {
         console.error('Error al cargar tareas:', error);
@@ -34,8 +31,6 @@ const JardineroPanel = () => {
         setCargando(false);
       }
     };
-    
-
     cargarTareas();
   }, []);
 
@@ -44,17 +39,13 @@ const JardineroPanel = () => {
       const respuesta = await fetch(`http://localhost:3001/tareas/${id}/completar`, {
         method: 'PUT'
       });
-
       const datos = await respuesta.json();
-      
       if (!respuesta.ok) {
         throw new Error(datos.error || 'Error al completar tarea');
       }
-
       setTareas(tareas.map(t => 
         t.id_tarea === id ? { ...t, completada: true } : t
       ));
-      
       if (tareaSeleccionada?.id_tarea === id) {
         setTareaSeleccionada(null);
       }

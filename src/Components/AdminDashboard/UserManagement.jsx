@@ -24,10 +24,8 @@ const UserManagement = () => {
   // Función para agregar un nuevo usuario
   const addUser = async (e) => {
     e.preventDefault();
-
     // Verifica que los campos obligatorios estén presentes
     if (!newUser.nombre || !newUser.apellidoPat || !newUser.username || !newUser.password || !newUser.role || newUser.role === 1) return;
-
     try {
       const response = await fetch('http://localhost:3001/usuarios', {
         method: 'POST',
@@ -36,14 +34,11 @@ const UserManagement = () => {
         },
         body: JSON.stringify(newUser)
       });
-
       const result = await response.json();
-
       if (result.success) {
         // Recargar usuarios desde el backend actualizado
         const updatedUsers = await fetch('http://localhost:3001/usuarios').then(res => res.json());
         setUsers(updatedUsers);
-
         // Limpiar el formulario después de agregar el usuario
         setNewUser({
           nombre: '',

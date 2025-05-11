@@ -1,9 +1,9 @@
 // Importación de hooks y librerías necesarias
-import { useState } from 'react';
-import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
-import { useNavigate } from 'react-router-dom';
-import './Login.css';
-import logo from './assets/logo.png';
+import { useState } from 'react'; // Importa el hook useState de React para gestionar el estado local.
+import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'; // Importa íconos para mostrar/ocultar contraseña.
+import { useNavigate } from 'react-router-dom'; // Importa el hook useNavigate para navegar entre rutas en React.
+import './Login.css'; // Importa los estilos del formulario de login.
+import logo from './assets/logo.png'; // Importa el logo de la aplicación.
 
 // Componente funcional para el formulario de login
 const Login = () => {
@@ -12,34 +12,34 @@ const Login = () => {
 
   // Estado para las credenciales del usuario
   const [credentials, setCredentials] = useState({
-    username: '',
-    password: ''
+    username: '', 
+    password: ''  
   });
 
   // Estado para manejar errores y estado de carga
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(''); // Mensajes de error
+  const [loading, setLoading] = useState(false); // Estado de carga para el proceso de login
 
   // Hook para navegar entre rutas
   const navigate = useNavigate();
 
   // Maneja el envío del formulario
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+    e.preventDefault(); // Previene el comportamiento por defecto del formulario.
+    setLoading(true); // Activa el estado de carga.
+    setError(''); // Limpia cualquier mensaje de error previo.
 
     try {
       // Petición POST al backend para autenticación
       const response = await fetch('http://localhost:3001/login', {
-        method: 'POST',
+        method: 'POST', // Se utiliza el método POST para enviar los datos al servidor.
         headers: { 
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          'Content-Type': 'application/json', // Se indica que los datos son en formato JSON.
+          'Accept': 'application/json' // Se espera una respuesta también en formato JSON.
         },
         body: JSON.stringify({
-          username: credentials.username,
-          password: credentials.password
+          username: credentials.username, // Envía el nombre de usuario.
+          password: credentials.password  // Envía la contraseña.
         })
       });
 
@@ -48,7 +48,7 @@ const Login = () => {
 
       // Si hubo error, se lanza una excepción
       if (!response.ok) {
-        throw new Error(data.error || 'Error en la autenticación');
+        throw new Error(data.error || 'Error en la autenticación'); // Si hay error, muestra el mensaje correspondiente.
       }
 
       // Si el login fue exitoso
@@ -59,21 +59,21 @@ const Login = () => {
 
         // Redirige según el rol del usuario
         switch (data.user.role) {
-          case 1: navigate('/AdminDashboard'); break;
-          case 2: navigate('/Almacenista'); break;
-          case 3: navigate('/Cajero'); break;
-          case 4: navigate('/Jardinero'); break;
-          default: setError('Rol no reconocido');
+          case 1: navigate('/AdminDashboard'); break; // Redirige a AdminDashboard si es rol 1 (Administrador).
+          case 2: navigate('/Almacenista'); break; // Redirige a Almacenista si es rol 2.
+          case 3: navigate('/Cajero'); break; // Redirige a Cajero si es rol 3.
+          case 4: navigate('/Jardinero'); break; // Redirige a Jardinero si es rol 4.
+          default: setError('Rol no reconocido'); // Si no es un rol válido, muestra un error.
         }
       }
     } catch (err) {
       // Muestra mensaje si no se puede conectar o si hay otro error
       setError(err.message.includes('Failed to fetch') 
-        ? 'No se pudo conectar al servidor' 
-        : err.message);
+        ? 'No se pudo conectar al servidor' // Si no se puede conectar al servidor, muestra un mensaje.
+        : err.message); // De lo contrario, muestra el mensaje de error general.
     } finally {
       // Finaliza el estado de carga
-      setLoading(false);
+      setLoading(false); // Desactiva el estado de carga una vez completada la operación.
     }
   };
 
@@ -82,8 +82,8 @@ const Login = () => {
       <div className="login-card">
         <div className="login-header">
           <div className="logo-container">
-            <img src={logo} alt="Logo" className="logo" />
-            <h1>GreenHouse Portal</h1>
+            <img src={logo} alt="Logo" className="logo" /> {/* Muestra el logo de la aplicación */}
+            <h1>GreenHouse Portal</h1> {/* Título de la página */}
           </div>
         </div>
 
@@ -105,7 +105,7 @@ const Login = () => {
               value={credentials.username}
               onChange={(e) => setCredentials({
                 ...credentials,
-                username: e.target.value.trim()
+                username: e.target.value.trim() // Actualiza el nombre de usuario
               })}
               required
               autoComplete="username"
@@ -121,12 +121,12 @@ const Login = () => {
             <div className="password-input">
               <input
                 id="password"
-                type={showPassword ? "text" : "password"}
+                type={showPassword ? "text" : "password"} // Muestra u oculta la contraseña según el estado
                 placeholder="Contraseña"
                 value={credentials.password}
                 onChange={(e) => setCredentials({
                   ...credentials,
-                  password: e.target.value
+                  password: e.target.value // Actualiza la contraseña
                 })}
                 required
                 autoComplete="current-password"
@@ -134,13 +134,13 @@ const Login = () => {
               <button 
                 type="button" 
                 className="toggle-password"
-                onClick={() => setShowPassword(!showPassword)}
+                onClick={() => setShowPassword(!showPassword)} // Alterna el estado de mostrar/ocultar contraseña
                 aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
               >
                 {showPassword ? (
-                  <EyeSlashIcon className="eye-icon" />
+                  <EyeSlashIcon className="eye-icon" /> // Icono para ocultar la contraseña
                 ) : (
-                  <EyeIcon className="eye-icon" />
+                  <EyeIcon className="eye-icon" /> // Icono para mostrar la contraseña
                 )}
               </button>
             </div>
@@ -153,7 +153,7 @@ const Login = () => {
             disabled={loading}
             aria-busy={loading}
           >
-            {loading ? 'Verificando...' : 'Ingresar al sistema'}
+            {loading ? 'Verificando...' : 'Ingresar al sistema'} {/* Muestra "Verificando..." mientras se está cargando */}
           </button>
         </form>
 
@@ -162,7 +162,7 @@ const Login = () => {
           <div className="about-content">
             <h3>Acerca del sistema</h3>
             <p>Versión 1.4.2 (Estable) - Sistema de administración para invernaderos</p>
-            <p>© {new Date().getFullYear()} Todos los derechos reservados</p>
+            <p>© {new Date().getFullYear()} Todos los derechos reservados</p> {/* Muestra el año actual */}
           </div>
         </div>
       </div>

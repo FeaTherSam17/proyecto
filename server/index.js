@@ -112,6 +112,7 @@ app.get('/usuarios', (req, res) => {
     res.json(results);
   });
 });
+
 app.post('/usuarios', (req, res) => {
   // Se extraen los datos del cuerpo de la solicitud
   const { nombre, apellidoPat, apellidoMat, username, role, password } = req.body;
@@ -914,6 +915,7 @@ app.get('/categorias', (req, res) => {
 });
 
 // Registrar una venta con sus detalles
+// Registrar una venta con sus detalles
 app.post('/ventas', (req, res) => {
   const { fecha, total, items } = req.body;
 
@@ -921,41 +923,83 @@ app.post('/ventas', (req, res) => {
     return res.status(400).json({ success: false, message: "Datos incompletos para la venta" });
   }
 
-  const sqlVenta = 'INSERT INTO Ventas (fecha, total) VALUES (?, ?)';
-  
-  db.query(sqlVenta, [fecha, total], (err, resultadoVenta) => {
+  // Verificar que hay suficiente stock para los productos
+  const checkStockSql = `
+    SELECT p.id_producto, p.stock, SUM(d.cantidad) AS cantidad_vendida
+    FROM detalle_ventas d
+    JOIN producto p ON d.id_producto = p.id_producto
+    WHERE p.id_producto IN (?)
+    GROUP BY p.id_producto
+  `;
+
+  const productIds = items.map(item => item.id_producto);
+
+  db.query(checkStockSql, [productIds], (err, stockResults) => {
     if (err) {
-      console.error('❌ Error al registrar la venta:', err);
-      return res.status(500).json({ success: false, message: "Error al registrar la venta", error: err.message });
+      console.error('❌ Error al verificar el stock:', err);
+      return res.status(500).json({ success: false, message: "Error al verificar stock", error: err.message });
     }
 
-    const idVenta = resultadoVenta.insertId;
+    const insufficientStock = items.some(item => {
+      const stockItem = stockResults.find(r => r.id_producto === item.id_producto);
+      return !stockItem || stockItem.stock < item.cantidad;
+    });
 
-    const detalles = items.map(item => [
-      idVenta,
-      item.id_producto,
-      item.cantidad,
-      item.precio_unitario,
-      item.total
-    ]);
+    if (insufficientStock) {
+      return res.status(400).json({ success: false, message: "No hay suficiente stock para algunos productos" });
+    }
 
-    const sqlDetalle = `
-      INSERT INTO Detalle_ventas 
-      (id_venta, id_producto, cantidad, precio_unitario, total) 
-      VALUES ?
-    `;
-
-    db.query(sqlDetalle, [detalles], (err2) => {
-      if (err2) {
-        console.error('❌ Error al registrar el detalle de la venta:', err2);
-        return res.status(500).json({ success: false, message: "Error al registrar detalle", error: err2.message });
+    // Registrar la venta
+    const sqlVenta = 'INSERT INTO Ventas (fecha, total) VALUES (?, ?)';
+    db.query(sqlVenta, [fecha, total], (err, resultadoVenta) => {
+      if (err) {
+        console.error('❌ Error al registrar la venta:', err);
+        return res.status(500).json({ success: false, message: "Error al registrar la venta", error: err.message });
       }
 
-      res.status(200).json({ success: true, message: "Venta registrada correctamente" });
+      const idVenta = resultadoVenta.insertId;
+
+      // Registrar el detalle de la venta y actualizar el stock
+      const detalles = items.map(item => [
+        idVenta,
+        item.id_producto,
+        item.cantidad,
+        item.precio_unitario,
+        item.total
+      ]);
+
+      const sqlDetalle = `
+        INSERT INTO Detalle_ventas 
+        (id_venta, id_producto, cantidad, precio_unitario, total) 
+        VALUES ?
+      `;
+
+      db.query(sqlDetalle, [detalles], (err2) => {
+        if (err2) {
+          console.error('❌ Error al registrar el detalle de la venta:', err2);
+          return res.status(500).json({ success: false, message: "Error al registrar detalle", error: err2.message });
+        }
+
+        // Actualizar el stock de los productos vendidos
+        const updateStockSql = `
+          UPDATE producto
+          SET stock = stock - ?
+          WHERE id_producto = ?
+        `;
+
+        items.forEach(item => {
+          db.query(updateStockSql, [item.cantidad, item.id_producto], (err3) => {
+            if (err3) {
+              console.error('❌ Error al actualizar el stock:', err3);
+            }
+          });
+        });
+
+        res.status(200).json({ success: true, message: "Venta registrada correctamente" });
+      });
     });
   });
 });
-
 
 // --------------------- SECCION DEL JARDINERO --------------------
 

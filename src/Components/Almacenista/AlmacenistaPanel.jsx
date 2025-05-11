@@ -83,21 +83,17 @@ const AlmacenistaPanel = () => {
 
   const agregarProducto = async (e) => {
     e.preventDefault();
-
     if (!nuevoProducto.nombre || !nuevoProducto.precio) {
       alert('Nombre y precio son obligatorios');
       return;
     }
-
     const idCategoria = obtenerIdCategoria(nuevoProducto.categoria);
     if (!idCategoria) {
       alert('Categoría inválida');
       return;
     }
-
     setLoading(true);
     setError(null);
-
     try {
       const response = await fetch('http://localhost:3001/productos', {
         method: 'POST',
@@ -110,7 +106,6 @@ const AlmacenistaPanel = () => {
           stock: parseInt(nuevoProducto.cantidad) || 0 // ← cantidad enviada
         })
       });
-
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Error al registrar producto');
