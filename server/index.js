@@ -795,49 +795,91 @@ app.delete('/operaciones-proveedores/:id', (req, res) => {
 app.post('/productos', (req, res) => {
   const { nombre, id_categoria, precio, stock, id_proveedor } = req.body;
 
-  // Validación de campos obligatorios
   if (!nombre || !id_categoria || !precio) {
     return res.status(400).json({ 
       success: false, 
-      mensaje: 'Nombre, categoría y precio son obligatorios' 
+      message: 'Nombre, categoría y precio son obligatorios' 
     });
   }
 
-  const nuevoProducto = {
-    nombre,
-    id_categoria,
-    precio: parseFloat(precio),
-    stock: parseInt(stock) || 0,  // Valor por defecto si no se especifica
-    id_proveedor: id_proveedor || null
-  };
-
-  const sql = `
-    INSERT INTO producto 
-    (nombre, id_categoria, precio, stock, id_proveedor)
-    VALUES (?, ?, ?, ?, ?)
+  // Primero verifica si ya existe el producto con el mismo nombre y proveedor
+  const checkSql = `
+    SELECT id_producto, stock, precio 
+    FROM producto 
+    WHERE nombre = ? AND id_proveedor = ?
   `;
 
-  db.query(sql, [
-    nuevoProducto.nombre,
-    nuevoProducto.id_categoria,
-    nuevoProducto.precio,
-    nuevoProducto.stock,
-    nuevoProducto.id_proveedor
-  ], (err, result) => {
+  db.query(checkSql, [nombre, id_proveedor || null], (err, results) => {
     if (err) {
-      console.error('❌ Error al insertar producto:', err);
+      console.error('Error al verificar producto:', err);
       return res.status(500).json({ 
         success: false, 
-        mensaje: 'Error del servidor al guardar el producto',
-        error: err.message 
+        message: 'Error al verificar producto existente' 
       });
     }
 
-    res.status(201).json({
-      success: true,
-      mensaje: 'Producto registrado con éxito',
-      id: result.insertId
-    });
+    if (results.length > 0) {
+      // Producto existe, actualizamos stock y precio
+      const productoExistente = results[0];
+      const nuevoStock = parseInt(productoExistente.stock) + (parseInt(stock) || 0);
+      
+      const updateSql = `
+        UPDATE producto 
+        SET precio = ?, stock = ? 
+        WHERE id_producto = ?
+      `;
+
+      db.query(updateSql, [
+        parseFloat(precio), // Actualiza al nuevo precio
+        nuevoStock,         // Suma el nuevo stock al existente
+        productoExistente.id_producto
+      ], (updateErr, updateResult) => {
+        if (updateErr) {
+          console.error('Error al actualizar producto:', updateErr);
+          return res.status(500).json({ 
+            success: false, 
+            message: 'Error al actualizar producto' 
+          });
+        }
+
+        return res.json({
+          success: true,
+          message: 'Producto actualizado exitosamente',
+          id: productoExistente.id_producto,
+          updated: true
+        });
+      });
+    } else {
+      // Producto no existe, lo creamos
+      const insertSql = `
+        INSERT INTO producto 
+        (nombre, id_categoria, precio, stock, id_proveedor)
+        VALUES (?, ?, ?, ?, ?)
+      `;
+
+      db.query(insertSql, [
+        nombre,
+        id_categoria,
+        parseFloat(precio),
+        parseInt(stock) || 0,
+        id_proveedor || null
+      ], (insertErr, insertResult) => {
+        if (insertErr) {
+          console.error('Error al crear producto:', insertErr);
+          return res.status(500).json({ 
+            success: false, 
+            message: 'Error al crear producto' 
+          });
+        }
+
+        return res.status(201).json({
+          success: true,
+          message: 'Producto creado exitosamente',
+          id: insertResult.insertId,
+          updated: false
+        });
+      });
+    }
   });
 });
 
@@ -878,6 +920,55 @@ app.get('/productos', (req, res) => {
       success: true,
       message: 'Productos obtenidos correctamente',
       data: resultados
+    });
+  });
+});
+
+// Modificar un producto existente
+app.put('/productos/:id', (req, res) => {
+  const { id } = req.params;
+  const { nombre, id_categoria, precio, stock, id_proveedor } = req.body;
+
+  if (!nombre || !id_categoria || precio === undefined || stock === undefined) {
+    return res.status(400).json({
+      success: false,
+      message: 'Nombre, categoría, precio y stock son obligatorios'
+    });
+  }
+
+  const updateSql = `
+    UPDATE producto 
+    SET nombre = ?, id_categoria = ?, precio = ?, stock = ?, id_proveedor = ?
+    WHERE id_producto = ?
+  `;
+
+  db.query(updateSql, [
+    nombre,
+    id_categoria,
+    parseFloat(precio),
+    parseInt(stock),
+    id_proveedor || null,
+    id
+  ], (err, result) => {
+    if (err) {
+      console.error('❌ Error al modificar producto:', err);
+      return res.status(500).json({
+        success: false,
+        message: 'Error al modificar producto',
+        error: err.message
+      });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Producto no encontrado'
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: 'Producto modificado correctamente'
     });
   });
 });

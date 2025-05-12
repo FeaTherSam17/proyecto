@@ -11,7 +11,7 @@ const AlmacenistaPanel = () => {
     categoria: 'plantas',
     precio: '',
     proveedor: '',
-    cantidad: '' // ← nuevo campo
+    cantidad: ''
   });
 
   const [productos, setProductos] = useState([]);
@@ -20,6 +20,7 @@ const AlmacenistaPanel = () => {
   const [categoriaFiltro, setCategoriaFiltro] = useState('todas');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [editando, setEditando] = useState(null); // id del producto que se edita
 
   useEffect(() => {
     const cargarDatos = async () => {
@@ -87,57 +88,84 @@ const AlmacenistaPanel = () => {
       alert('Nombre y precio son obligatorios');
       return;
     }
-    const idCategoria = obtenerIdCategoria(nuevoProducto.categoria);
-    if (!idCategoria) {
-      alert('Categoría inválida');
-      return;
-    }
+
     setLoading(true);
-    setError(null);
     try {
-      const response = await fetch('http://localhost:3001/productos', {
-        method: 'POST',
+      const method = editando ? 'PUT' : 'POST';
+      const url = editando
+        ? `http://localhost:3001/productos/${editando}`
+        : 'http://localhost:3001/productos';
+
+      const response = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           nombre: nuevoProducto.nombre,
-          id_categoria: idCategoria,
+          id_categoria: obtenerIdCategoria(nuevoProducto.categoria),
           precio: parseFloat(nuevoProducto.precio),
-          id_proveedor: nuevoProducto.proveedor || null,
-          stock: parseInt(nuevoProducto.cantidad) || 0 // ← cantidad enviada
+          stock: parseInt(nuevoProducto.cantidad || 0),
+          id_proveedor: nuevoProducto.proveedor || null
         })
       });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Error al registrar producto');
+
+      const data = await response.json();
+
+      if (!response.ok) throw new Error(data.message || 'Error al guardar producto');
+
+      const proveedorNombre = proveedores.find(p => p.id == nuevoProducto.proveedor)?.nombre || 'Sin proveedor';
+
+      if (editando) {
+        // Actualizar producto editado en estado
+        setProductos(prev =>
+          prev.map(p =>
+            p.id === editando
+              ? {
+                  ...p,
+                  nombre: nuevoProducto.nombre,
+                  categoria: nuevoProducto.categoria,
+                  precio: parseFloat(nuevoProducto.precio),
+                  stock: parseInt(nuevoProducto.cantidad),
+                  proveedor: proveedorNombre
+                }
+              : p
+          )
+        );
+        setEditando(null);
+      } else {
+        // Agregar nuevo producto
+        setProductos(prev => [...prev, {
+          id: data.id,
+          nombre: nuevoProducto.nombre,
+          categoria: nuevoProducto.categoria,
+          precio: parseFloat(nuevoProducto.precio),
+          stock: parseInt(nuevoProducto.cantidad || 0),
+          proveedor: proveedorNombre
+        }]);
       }
-
-      const nuevo = await response.json();
-      const proveedor = proveedores.find(p => p.id == nuevoProducto.proveedor);
-      const cantidad = parseInt(nuevoProducto.cantidad) || 0;
-
-      setProductos(prev => [...prev, {
-        id: nuevo.id || Date.now(),
-        nombre: nuevoProducto.nombre,
-        categoria: nuevoProducto.categoria.toLowerCase(),
-        precio: parseFloat(nuevoProducto.precio),
-        stock: cantidad,
-        proveedor: proveedor?.nombre || 'Sin proveedor'
-      }]);
 
       setNuevoProducto({
         nombre: '',
         categoria: 'plantas',
         precio: '',
         proveedor: '',
-        cantidad: '' // ← reset
+        cantidad: ''
       });
-
-    } catch (err) {
-      console.error('Error:', err);
-      setError(err.message);
+    } catch (error) {
+      setError(error.message);
     } finally {
       setLoading(false);
     }
+  };
+
+  const editarProducto = (producto) => {
+    setNuevoProducto({
+      nombre: producto.nombre,
+      categoria: producto.categoria,
+      precio: producto.precio,
+      proveedor: proveedores.find(p => p.nombre === producto.proveedor)?.id || '',
+      cantidad: producto.stock
+    });
+    setEditando(producto.id);
   };
 
   const productosFiltrados = productos.filter(p => {
@@ -167,27 +195,17 @@ const AlmacenistaPanel = () => {
 
       <div className="panel-container">
         <div className="formulario-section">
-          <h2>Registrar Nuevo Producto</h2>
+          <h2>{editando ? 'Editar Producto' : 'Registrar Nuevo Producto'}</h2>
 
           <form onSubmit={agregarProducto} className="producto-form">
             <div className="form-group">
               <label>Nombre*:</label>
-              <input
-                type="text"
-                name="nombre"
-                value={nuevoProducto.nombre}
-                onChange={handleInputChange}
-                required
-              />
+              <input type="text" name="nombre" value={nuevoProducto.nombre} onChange={handleInputChange} required />
             </div>
 
             <div className="form-group">
               <label>Categoría:</label>
-              <select
-                name="categoria"
-                value={nuevoProducto.categoria}
-                onChange={handleInputChange}
-              >
+              <select name="categoria" value={nuevoProducto.categoria} onChange={handleInputChange}>
                 <option value="plantas">Plantas</option>
                 <option value="herramientas">Herramientas</option>
               </select>
@@ -195,36 +213,17 @@ const AlmacenistaPanel = () => {
 
             <div className="form-group">
               <label>Precio*:</label>
-              <input
-                type="number"
-                name="precio"
-                value={nuevoProducto.precio}
-                onChange={handleInputChange}
-                min="0"
-                step="0.01"
-                required
-              />
+              <input type="number" name="precio" value={nuevoProducto.precio} onChange={handleInputChange} min="0" step="0.01" required />
             </div>
 
             <div className="form-group">
               <label>Cantidad:</label>
-              <input
-                type="number"
-                name="cantidad"
-                value={nuevoProducto.cantidad}
-                onChange={handleInputChange}
-                min="0"
-                step="1"
-              />
+              <input type="number" name="cantidad" value={nuevoProducto.cantidad} onChange={handleInputChange} min="0" step="1" />
             </div>
 
             <div className="form-group">
               <label>Proveedor:</label>
-              <select
-                name="proveedor"
-                value={nuevoProducto.proveedor}
-                onChange={handleInputChange}
-              >
+              <select name="proveedor" value={nuevoProducto.proveedor} onChange={handleInputChange}>
                 <option value="">Seleccione proveedor</option>
                 {proveedores.map(p => (
                   <option key={p.id} value={p.id}>{p.nombre}</option>
@@ -233,8 +232,23 @@ const AlmacenistaPanel = () => {
             </div>
 
             <button type="submit" className="guardar-btn" disabled={loading}>
-              {loading ? 'Registrando...' : 'Registrar Producto'}
+              {loading ? 'Guardando...' : (editando ? 'Guardar Cambios' : 'Registrar Producto')}
             </button>
+
+            {editando && (
+              <button type="button" onClick={() => {
+                setNuevoProducto({
+                  nombre: '',
+                  categoria: 'plantas',
+                  precio: '',
+                  proveedor: '',
+                  cantidad: ''
+                });
+                setEditando(null);
+              }} className="cancelar-btn">
+                Cancelar Edición
+              </button>
+            )}
           </form>
         </div>
 
@@ -242,19 +256,8 @@ const AlmacenistaPanel = () => {
           <h2>Inventario de Productos</h2>
 
           <div className="filtros">
-            <input
-              type="text"
-              placeholder="Buscar por nombre..."
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-              className="busqueda-input"
-            />
-
-            <select
-              value={categoriaFiltro}
-              onChange={(e) => setCategoriaFiltro(e.target.value)}
-              className="categoria-select"
-            >
+            <input type="text" placeholder="Buscar por nombre..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} className="busqueda-input" />
+            <select value={categoriaFiltro} onChange={(e) => setCategoriaFiltro(e.target.value)} className="categoria-select">
               <option value="todas">Todas las categorías</option>
               <option value="plantas">Plantas</option>
               <option value="herramientas">Herramientas</option>
@@ -271,13 +274,12 @@ const AlmacenistaPanel = () => {
                   <th>Precio</th>
                   <th>Cantidad</th>
                   <th>Proveedor</th>
+                  <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {productosFiltrados.length === 0 ? (
-                  <tr>
-                    <td colSpan="6" className="no-resultados">No se encontraron productos</td>
-                  </tr>
+                  <tr><td colSpan="7" className="no-resultados">No se encontraron productos</td></tr>
                 ) : (
                   productosFiltrados.map(p => (
                     <tr key={p.id}>
@@ -289,6 +291,9 @@ const AlmacenistaPanel = () => {
                       <td>${p.precio.toFixed(2)}</td>
                       <td>{p.stock}</td>
                       <td>{p.proveedor}</td>
+                      <td>
+                        <button onClick={() => editarProducto(p)} className="editar-btn">Editar</button>
+                      </td>
                     </tr>
                   ))
                 )}
