@@ -9,38 +9,68 @@
   min-height: 100vh;
   position: relative;
 }
-
-/* Botón flotante de cerrar sesión */
 .floating-logout-btn {
   position: fixed;
   bottom: 25px;
   right: 25px;
-  width: 50px;
-  height: 50px;
-  background-color: #ffffff;
-  border: 1px solid #e0e0e0;
-  border-radius: 50%;
+  background-color: #e74c3c;
+  border: none;
+  border-radius: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 3px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 20px rgba(231, 76, 60, 0.3);
   z-index: 100;
   transition: all 0.3s ease;
   outline: none;
+  padding: 12px 20px 12px 15px;
+  color: white;
+  font-weight: 500;
+  font-size: 1rem;
+  gap: 8px;
 }
 
 .floating-logout-btn:hover {
-  background-color: #f8f8f8;
-  border-color: #e74c3c;
-  color: #e74c3c;
-  transform: scale(1.1);
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  background-color: #c0392b;
+  transform: scale(1.05);
+  box-shadow: 0 6px 25px rgba(231, 76, 60, 0.4);
 }
 
 .logout-icon {
-  font-size: 1.3rem;
-  font-weight: bold;
+  width: 24px;
+  height: 24px;
+  color: white;
+  stroke-width: 2;
+}
+
+.logout-text {
+  display: inline-block;
+}
+
+/* En móviles mostrar solo el icono */
+@media (max-width: 768px) {
+  .floating-logout-btn {
+    padding: 12px;
+    width: 50px;
+    height: 50px;
+  }
+  
+  .logout-text {
+    display: none;
+  }
+  
+  .logout-icon {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+.logout-icon {
+  width: 28px;
+  height: 28px;
+  color: white;
+  stroke-width: 2;
 }
 
 /* Header */
@@ -186,10 +216,15 @@
   font-size: 1.1rem;
 }
 
-.producto-card .categoria {
-  font-size: 0.8rem;
+.producto-card .stock {
+  font-size: 0.9rem;
   color: #7f8c8d;
   margin: 5px 0 0 0;
+}
+
+.producto-card.agotado {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 /* Sección de venta */
@@ -317,34 +352,6 @@
   border-color: #3498db;
 }
 
-.metodo-pago {
-  margin-bottom: 20px;
-}
-
-.metodo-pago label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 500;
-  color: #2c3e50;
-  font-size: 0.9rem;
-}
-
-.metodo-pago select {
-  width: 100%;
-  padding: 10px 15px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 14px;
-  background-color: #f9f9f9;
-  transition: all 0.3s;
-}
-
-.metodo-pago select:focus {
-  outline: none;
-  border-color: #3498db;
-  background-color: #fff;
-}
-
 .acciones-venta {
   display: flex;
   gap: 15px;
@@ -384,6 +391,61 @@
 .finalizar-btn:disabled {
   background-color: #95a5a6;
   cursor: not-allowed;
+}
+
+/* Loading y errores */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+.loading-spinner {
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid #3498db;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  padding: 20px;
+  text-align: center;
+}
+
+.error-message {
+  color: #e74c3c;
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+}
+
+.logout-button {
+  padding: 12px 24px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.logout-button:hover {
+  background-color: #2980b9;
 }
 
 /* Responsive */
@@ -426,7 +488,12 @@
   .floating-logout-btn {
     bottom: 15px;
     right: 15px;
-    width: 45px;
-    height: 45px;
+    width: 50px;
+    height: 50px;
+  }
+  
+  .logout-icon {
+    width: 24px;
+    height: 24px;
   }
 }

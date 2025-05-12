@@ -46,11 +46,11 @@ const Login = () => {
       // Se convierte la respuesta en JSON
       const data = await response.json();
 
-      // Si hubo error, se lanza una excepción
-      if (!response.ok) {
-        throw new Error(data.error || 'Error en la autenticación'); // Si hay error, muestra el mensaje correspondiente.
-      }
-
+     // Si hubo error, se lanza una excepción
+    if (!response.ok) {
+      console.error(`Error ${response.status}: ${data.error || 'Error en la autenticación'}`); // Muestra el error en la consola
+      throw new Error(data.error || 'Error en la autenticación'); // Lanza el error con el mensaje correspondiente
+    }
       // Si el login fue exitoso
       if (data.success) {
         // Se guarda el usuario en localStorage
