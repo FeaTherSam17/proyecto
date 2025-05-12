@@ -1,228 +1,324 @@
-/* Estilos generales */
+/* Estilos generales - Tema GreenHouse */
 .almacenista-panel {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-    color: #333;
-  }
-  
-  .almacenista-panel h1 {
-    color: #2c3e50;
-    text-align: center;
-    margin-bottom: 30px;
-    border-bottom: 2px solid #3498db;
-    padding-bottom: 10px;
-  }
-  
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  color: #2a2a2a;
+  background-color: #ffffff;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* Header */
+.panel-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.panel-logo {
+  height: 80px;
+  margin-bottom: 15px;
+}
+
+.almacenista-panel h1 {
+  color: #2e7d32;
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+/* Layout principal */
+.panel-container {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 25px;
+  flex: 1;
+}
+
+/* Formulario */
+.formulario-section {
+  background-color: #f8faf8;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  border: 1px solid #e0e7e0;
+}
+
+.formulario-section h2 {
+  color: #2e7d32;
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 1.4rem;
+}
+
+.producto-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: #2e7d32;
+  font-size: 0.9rem;
+}
+
+.form-group input,
+.form-group select {
+  padding: 10px 12px;
+  border: 1px solid #c8e6c9;
+  border-radius: 6px;
+  font-size: 14px;
+  background-color: #ffffff;
+  transition: border 0.3s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #2e7d32;
+}
+
+.guardar-btn {
+  background-color: #2e7d32;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  margin-top: 10px;
+  transition: background-color 0.3s;
+  font-size: 0.95rem;
+}
+
+.guardar-btn:hover {
+  background-color: #1b5e20;
+}
+
+/* Lista de productos */
+.lista-section {
+  background-color: #f8faf8;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  border: 1px solid #e0e7e0;
+}
+
+.lista-section h2 {
+  color: #2e7d32;
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 1.4rem;
+}
+
+.filtros {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.busqueda-input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #c8e6c9;
+  border-radius: 6px;
+  background-color: #ffffff;
+  font-size: 14px;
+}
+
+.categoria-select {
+  padding: 10px 12px;
+  border: 1px solid #c8e6c9;
+  border-radius: 6px;
+  background-color: #ffffff;
+  min-width: 160px;
+  font-size: 14px;
+}
+
+.productos-table-container {
+  max-height: 500px;
+  overflow-y: auto;
+  margin-bottom: 20px;
+  border: 1px solid #e0e7e0;
+  border-radius: 6px;
+}
+
+.productos-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.productos-table th {
+  background-color: #2e7d32;
+  color: white;
+  padding: 12px 15px;
+  text-align: left;
+  position: sticky;
+  top: 0;
+  font-weight: 500;
+}
+
+.productos-table td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #e0e7e0;
+  background-color: #ffffff;
+}
+
+.productos-table tr:nth-child(even) td {
+  background-color: #f1f8f1;
+}
+
+.categoria-plantas {
+  color: #2e7d32;
+  font-weight: 500;
+}
+
+.categoria-herramientas {
+  color: #455a64;
+  font-weight: 500;
+}
+
+.no-resultados {
+  text-align: center;
+  padding: 20px;
+  color: #757575;
+  font-style: italic;
+}
+
+/* Resumen de inventario */
+.resumen-inventario {
+  background-color: #e8f5e9;
+  padding: 18px;
+  border-radius: 6px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  border: 1px solid #c8e6c9;
+}
+
+.resumen-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.resumen-item span:first-child {
+  color: #2e7d32;
+  margin-bottom: 5px;
+  font-size: 0.85rem;
+}
+
+.resumen-item span:last-child {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: #1b5e20;
+}
+
+/* Footer */
+.panel-footer {
+  margin-top: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 20px;
+  border-top: 1px solid #e0e7e0;
+}
+
+.footer-logo {
+  height: 40px;
+  opacity: 0.8;
+  margin-bottom: 10px;
+}
+
+.panel-footer p {
+  color: #2e7d32;
+  font-size: 0.85rem;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Botón flotante de cerrar sesión */
+.floating-logout-btn {
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  width: 50px;
+  height: 50px;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.15);
+  z-index: 100;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.floating-logout-btn:hover {
+  background-color: #f8f8f8;
+  border-color: #e74c3c;
+  color: #e74c3c;
+  transform: scale(1.1);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.logout-icon {
+  font-size: 1.3rem;
+  font-weight: bold;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
   .panel-container {
-    display: grid;
-    grid-template-columns: 1fr 1.5fr;
-    gap: 20px;
+    grid-template-columns: 1fr;
   }
   
-  /* Formulario de producto */
-  .formulario-section {
-    background-color: #f8f9fa;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  }
-  
-  .formulario-section h2 {
-    color: #2980b9;
-    margin-top: 0;
-    margin-bottom: 20px;
-  }
-  
-  .producto-form {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-  }
-  
-  .form-group {
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .form-group label {
-    margin-bottom: 5px;
-    font-weight: 600;
-    color: #2c3e50;
-  }
-  
-  .form-group input,
-  .form-group select {
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
-  }
-  
-  .form-row {
-    display: flex;
-    gap: 15px;
-  }
-  
-  .form-row .form-group {
-    flex: 1;
-  }
-  
-  .guardar-btn {
-    background-color: #27ae60;
-    color: white;
-    border: none;
-    padding: 10px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    margin-top: 10px;
-    transition: background-color 0.3s;
-  }
-  
-  .guardar-btn:hover {
-    background-color: #219653;
-  }
-  
-  /* Lista de productos */
-  .lista-section {
-    background-color: #f8f9fa;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  }
-  
-  .lista-section h2 {
-    color: #2980b9;
-    margin-top: 0;
-    margin-bottom: 20px;
-  }
-  
-  .filtros {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 15px;
-  }
-  
-  .busqueda-input {
-    flex: 1;
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-  }
-  
-  .categoria-select {
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    background-color: white;
-    min-width: 150px;
-  }
-  
-  .productos-table-container {
-    max-height: 500px;
-    overflow-y: auto;
-    margin-bottom: 15px;
-  }
-  
-  .productos-table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  
-  .productos-table th {
-    background-color: #3498db;
-    color: white;
-    padding: 10px;
-    text-align: left;
-    position: sticky;
-    top: 0;
-  }
-  
-  .productos-table td {
-    padding: 10px;
-    border-bottom: 1px solid #ddd;
-  }
-  
-  .no-resultados {
-    text-align: center;
-    padding: 20px;
-    color: #7f8c8d;
-  }
-  
-  /* Indicadores de stock */
-  .stock {
-    font-weight: 500;
-  }
-  
-  .stock.bajo {
-    color: #e67e22;
-    font-weight: bold;
-  }
-  
-  .estado {
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: bold;
-  }
-  
-  .estado.disponible {
-    background-color: #d5f5e3;
-    color: #27ae60;
-  }
-  
-  .estado.bajo {
-    background-color: #fdebd0;
-    color: #e67e22;
-  }
-  
-  .estado.agotado {
-    background-color: #fadbd8;
-    color: #e74c3c;
-  }
-  
-  /* Resumen de inventario */
   .resumen-inventario {
-    background-color: white;
-    padding: 15px;
-    border-radius: 6px;
-    display: flex;
-    justify-content: space-between;
-    font-size: 14px;
-  }
-  
-  .resumen-item {
-    display: flex;
     flex-direction: column;
+    gap: 15px;
     align-items: center;
   }
   
-  .resumen-item span:first-child {
-    color: #7f8c8d;
-    margin-bottom: 5px;
+  .panel-logo {
+    height: 65px;
+  }
+}
+
+@media (max-width: 768px) {
+  .filtros {
+    flex-direction: column;
   }
   
-  .resumen-item span:last-child {
-    font-weight: bold;
-    font-size: 18px;
+  .panel-logo {
+    height: 55px;
   }
   
-  /* Responsive */
-  @media (max-width: 992px) {
-    .panel-container {
-      grid-template-columns: 1fr;
-    }
-    
-    .form-row {
-      flex-direction: column;
-      gap: 15px;
-    }
-    
-    .resumen-inventario {
-      flex-direction: column;
-      gap: 15px;
-      align-items: center;
-    }
+  .almacenista-panel h1 {
+    font-size: 1.5rem;
   }
+
+  .floating-logout-btn {
+    bottom: 15px;
+    right: 15px;
+    width: 45px;
+    height: 45px;
+  }
+}

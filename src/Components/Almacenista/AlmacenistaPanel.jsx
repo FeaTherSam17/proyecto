@@ -1,291 +1,298 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './AlmacenistaPanel.css';
+import logo from '../Login/assets/logo.png';
 
 const AlmacenistaPanel = () => {
-  // Estados para el formulario de producto
+  const navigate = useNavigate();
+
   const [nuevoProducto, setNuevoProducto] = useState({
-    codigo: '',
     nombre: '',
-    categoria: 'Hortalizas',
+    categoria: 'plantas',
     precio: '',
-    costo: '',
-    stock: '',
-    stockMinimo: '',
-    unidadMedida: 'unidad',
-    proveedor: ''
+    proveedor: '',
+    cantidad: ''
   });
 
-  // Estados para la lista de productos
-  const [productos, setProductos] = useState([
-    {
-      id: 1,
-      codigo: 'PROD-001',
-      nombre: 'Tomate Cherry',
-      categoria: 'Hortalizas',
-      precio: 3.50,
-      costo: 1.80,
-      stock: 150,
-      stockMinimo: 30,
-      unidadMedida: 'kg',
-      proveedor: 'AgroFruits S.A.'
-    },
-    // ... más productos de ejemplo
-  ]);
-
-  // Estados para búsqueda y filtros
+  const [productos, setProductos] = useState([]);
+  const [proveedores, setProveedores] = useState([]);
   const [busqueda, setBusqueda] = useState('');
   const [categoriaFiltro, setCategoriaFiltro] = useState('todas');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [editando, setEditando] = useState(null); // id del producto que se edita
 
-  // Manejar cambios en el formulario
+  useEffect(() => {
+    const cargarDatos = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const [productosResp, proveedoresResp] = await Promise.all([
+          fetch('http://localhost:3001/productos'),
+          fetch('http://localhost:3001/suppliers')
+        ]);
+
+        if (!productosResp.ok || !proveedoresResp.ok) {
+          throw new Error('Error al obtener productos o proveedores');
+        }
+
+        const productosData = await productosResp.json();
+        const proveedoresData = await proveedoresResp.json();
+
+        const listaProveedores = proveedoresData.suppliers || [];
+
+        const listaProductos = Array.isArray(productosData)
+          ? productosData
+          : productosData.data || [];
+
+        setProveedores(listaProveedores.map(p => ({
+          ...p,
+          id: p.id || p.id_proveedor
+        })));
+
+        setProductos(listaProductos.map(p => ({
+          id: p.id || p.id_producto,
+          nombre: p.nombre,
+          categoria: (p.categoria || 'plantas').toLowerCase(),
+          precio: parseFloat(p.precio) || 0,
+          stock: p.stock || 0,
+          proveedor: p.proveedor || 'Sin proveedor'
+        })));
+      } catch (err) {
+        console.error('Error al cargar datos:', err);
+        setError('Error al cargar los datos iniciales');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    cargarDatos();
+  }, []);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setNuevoProducto({
-      ...nuevoProducto,
-      [name]: value
-    });
+    setNuevoProducto(prev => ({ ...prev, [name]: value }));
   };
 
-  // Agregar nuevo producto
-  const agregarProducto = (e) => {
+  const obtenerIdCategoria = (categoria) => {
+    switch (categoria.toLowerCase()) {
+      case 'plantas': return 1;
+      case 'herramientas': return 2;
+      default: return null;
+    }
+  };
+
+  const agregarProducto = async (e) => {
     e.preventDefault();
-    
-    // Validación básica
-    if (!nuevoProducto.nombre || !nuevoProducto.precio || !nuevoProducto.stock) {
-      alert('Por favor complete los campos obligatorios');
+    if (!nuevoProducto.nombre || !nuevoProducto.precio) {
+      alert('Nombre y precio son obligatorios');
       return;
     }
 
-    const producto = {
-      id: productos.length + 1,
-      codigo: nuevoProducto.codigo || `PROD-${(productos.length + 1).toString().padStart(3, '0')}`,
-      ...nuevoProducto,
-      precio: parseFloat(nuevoProducto.precio),
-      costo: parseFloat(nuevoProducto.costo) || 0,
-      stock: parseInt(nuevoProducto.stock),
-      stockMinimo: parseInt(nuevoProducto.stockMinimo) || 0
-    };
+    setLoading(true);
+    try {
+      const method = editando ? 'PUT' : 'POST';
+      const url = editando
+        ? `http://localhost:3001/productos/${editando}`
+        : 'http://localhost:3001/productos';
 
-    setProductos([...productos, producto]);
-    
-    // Resetear formulario
-    setNuevoProducto({
-      codigo: '',
-      nombre: '',
-      categoria: 'Hortalizas',
-      precio: '',
-      costo: '',
-      stock: '',
-      stockMinimo: '',
-      unidadMedida: 'unidad',
-      proveedor: ''
-    });
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nombre: nuevoProducto.nombre,
+          id_categoria: obtenerIdCategoria(nuevoProducto.categoria),
+          precio: parseFloat(nuevoProducto.precio),
+          stock: parseInt(nuevoProducto.cantidad || 0),
+          id_proveedor: nuevoProducto.proveedor || null
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) throw new Error(data.message || 'Error al guardar producto');
+
+      const proveedorNombre = proveedores.find(p => p.id == nuevoProducto.proveedor)?.nombre || 'Sin proveedor';
+
+      if (editando) {
+        // Actualizar producto editado en estado
+        setProductos(prev =>
+          prev.map(p =>
+            p.id === editando
+              ? {
+                  ...p,
+                  nombre: nuevoProducto.nombre,
+                  categoria: nuevoProducto.categoria,
+                  precio: parseFloat(nuevoProducto.precio),
+                  stock: parseInt(nuevoProducto.cantidad),
+                  proveedor: proveedorNombre
+                }
+              : p
+          )
+        );
+        setEditando(null);
+      } else {
+        // Agregar nuevo producto
+        setProductos(prev => [...prev, {
+          id: data.id,
+          nombre: nuevoProducto.nombre,
+          categoria: nuevoProducto.categoria,
+          precio: parseFloat(nuevoProducto.precio),
+          stock: parseInt(nuevoProducto.cantidad || 0),
+          proveedor: proveedorNombre
+        }]);
+      }
+
+      setNuevoProducto({
+        nombre: '',
+        categoria: 'plantas',
+        precio: '',
+        proveedor: '',
+        cantidad: ''
+      });
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Filtrar productos
-  const productosFiltrados = productos.filter(producto => {
-    const coincideBusqueda = producto.nombre.toLowerCase().includes(busqueda.toLowerCase()) || 
-                            producto.codigo.toLowerCase().includes(busqueda.toLowerCase());
-    const coincideCategoria = categoriaFiltro === 'todas' || producto.categoria === categoriaFiltro;
-    return coincideBusqueda && coincideCategoria;
+  const editarProducto = (producto) => {
+    setNuevoProducto({
+      nombre: producto.nombre,
+      categoria: producto.categoria,
+      precio: producto.precio,
+      proveedor: proveedores.find(p => p.nombre === producto.proveedor)?.id || '',
+      cantidad: producto.stock
+    });
+    setEditando(producto.id);
+  };
+
+  const productosFiltrados = productos.filter(p => {
+    const nombreCoincide = p.nombre?.toLowerCase().includes(busqueda.toLowerCase());
+    const categoriaCoincide = categoriaFiltro === 'todas' || p.categoria === categoriaFiltro;
+    return nombreCoincide && categoriaCoincide;
   });
 
-  // Categorías únicas para el filtro
-  const categorias = ['todas', ...new Set(productos.map(p => p.categoria))];
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    navigate('/');
+  };
+
+  if (loading) return <div className="loading">Cargando...</div>;
+  if (error) return <div className="error">Error: {error}</div>;
 
   return (
     <div className="almacenista-panel">
-      <h1>Gestión de Inventario</h1>
-      
+      <button className="floating-logout-btn" onClick={handleLogout} title="Cerrar sesión">
+        <span className="logout-icon">⎋</span>
+      </button>
+
+      <header className="panel-header">
+        <img src={logo} alt="GreenHouse Logo" className="panel-logo" />
+        <h1>GreenHouse - Gestión de Inventario</h1>
+      </header>
+
       <div className="panel-container">
-        {/* Formulario para agregar productos */}
         <div className="formulario-section">
-          <h2>Registrar Nuevo Producto</h2>
-          
+          <h2>{editando ? 'Editar Producto' : 'Registrar Nuevo Producto'}</h2>
+
           <form onSubmit={agregarProducto} className="producto-form">
             <div className="form-group">
-              <label>Código:</label>
-              <input
-                type="text"
-                name="codigo"
-                value={nuevoProducto.codigo}
-                onChange={handleInputChange}
-                placeholder="Auto-generado si se deja vacío"
-              />
-            </div>
-            
-            <div className="form-group">
               <label>Nombre*:</label>
-              <input
-                type="text"
-                name="nombre"
-                value={nuevoProducto.nombre}
-                onChange={handleInputChange}
-                required
-              />
+              <input type="text" name="nombre" value={nuevoProducto.nombre} onChange={handleInputChange} required />
             </div>
-            
+
             <div className="form-group">
               <label>Categoría:</label>
-              <select
-                name="categoria"
-                value={nuevoProducto.categoria}
-                onChange={handleInputChange}
-              >
-                <option value="Hortalizas">Hortalizas</option>
-                <option value="Frutas">Frutas</option>
-                <option value="Flores">Flores</option>
-                <option value="Insumos">Insumos</option>
-                <option value="Herramientas">Herramientas</option>
+              <select name="categoria" value={nuevoProducto.categoria} onChange={handleInputChange}>
+                <option value="plantas">Plantas</option>
+                <option value="herramientas">Herramientas</option>
               </select>
             </div>
-            
-            <div className="form-row">
-              <div className="form-group">
-                <label>Precio*:</label>
-                <input
-                  type="number"
-                  name="precio"
-                  value={nuevoProducto.precio}
-                  onChange={handleInputChange}
-                  min="0"
-                  step="0.01"
-                  required
-                />
-              </div>
-              
-              <div className="form-group">
-                <label>Costo:</label>
-                <input
-                  type="number"
-                  name="costo"
-                  value={nuevoProducto.costo}
-                  onChange={handleInputChange}
-                  min="0"
-                  step="0.01"
-                />
-              </div>
+
+            <div className="form-group">
+              <label>Precio*:</label>
+              <input type="number" name="precio" value={nuevoProducto.precio} onChange={handleInputChange} min="0" step="0.01" required />
             </div>
-            
-            <div className="form-row">
-              <div className="form-group">
-                <label>Stock*:</label>
-                <input
-                  type="number"
-                  name="stock"
-                  value={nuevoProducto.stock}
-                  onChange={handleInputChange}
-                  min="0"
-                  required
-                />
-              </div>
-              
-              <div className="form-group">
-                <label>Stock Mínimo:</label>
-                <input
-                  type="number"
-                  name="stockMinimo"
-                  value={nuevoProducto.stockMinimo}
-                  onChange={handleInputChange}
-                  min="0"
-                />
-              </div>
+
+            <div className="form-group">
+              <label>Cantidad:</label>
+              <input type="number" name="cantidad" value={nuevoProducto.cantidad} onChange={handleInputChange} min="0" step="1" />
             </div>
-            
-            <div className="form-row">
-              <div className="form-group">
-                <label>Unidad de Medida:</label>
-                <select
-                  name="unidadMedida"
-                  value={nuevoProducto.unidadMedida}
-                  onChange={handleInputChange}
-                >
-                  <option value="unidad">Unidad</option>
-                  <option value="kg">Kilogramo</option>
-                  <option value="g">Gramo</option>
-                  <option value="L">Litro</option>
-                  <option value="ml">Mililitro</option>
-                  <option value="paquete">Paquete</option>
-                </select>
-              </div>
-              
-              <div className="form-group">
-                <label>Proveedor:</label>
-                <input
-                  type="text"
-                  name="proveedor"
-                  value={nuevoProducto.proveedor}
-                  onChange={handleInputChange}
-                />
-              </div>
+
+            <div className="form-group">
+              <label>Proveedor:</label>
+              <select name="proveedor" value={nuevoProducto.proveedor} onChange={handleInputChange}>
+                <option value="">Seleccione proveedor</option>
+                {proveedores.map(p => (
+                  <option key={p.id} value={p.id}>{p.nombre}</option>
+                ))}
+              </select>
             </div>
-            
-            <button type="submit" className="guardar-btn">Registrar Producto</button>
+
+            <button type="submit" className="guardar-btn" disabled={loading}>
+              {loading ? 'Guardando...' : (editando ? 'Guardar Cambios' : 'Registrar Producto')}
+            </button>
+
+            {editando && (
+              <button type="button" onClick={() => {
+                setNuevoProducto({
+                  nombre: '',
+                  categoria: 'plantas',
+                  precio: '',
+                  proveedor: '',
+                  cantidad: ''
+                });
+                setEditando(null);
+              }} className="cancelar-btn">
+                Cancelar Edición
+              </button>
+            )}
           </form>
         </div>
-        
-        {/* Lista de productos */}
+
         <div className="lista-section">
           <h2>Inventario de Productos</h2>
-          
+
           <div className="filtros">
-            <input
-              type="text"
-              placeholder="Buscar por nombre o código..."
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-              className="busqueda-input"
-            />
-            
-            <select
-              value={categoriaFiltro}
-              onChange={(e) => setCategoriaFiltro(e.target.value)}
-              className="categoria-select"
-            >
-              {categorias.map(categoria => (
-                <option key={categoria} value={categoria}>
-                  {categoria === 'todas' ? 'Todas' : categoria}
-                </option>
-              ))}
+            <input type="text" placeholder="Buscar por nombre..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} className="busqueda-input" />
+            <select value={categoriaFiltro} onChange={(e) => setCategoriaFiltro(e.target.value)} className="categoria-select">
+              <option value="todas">Todas las categorías</option>
+              <option value="plantas">Plantas</option>
+              <option value="herramientas">Herramientas</option>
             </select>
           </div>
-          
+
           <div className="productos-table-container">
             <table className="productos-table">
               <thead>
                 <tr>
-                  <th>Código</th>
+                  <th>ID</th>
                   <th>Nombre</th>
                   <th>Categoría</th>
                   <th>Precio</th>
-                  <th>Stock</th>
-                  <th>Estado</th>
+                  <th>Cantidad</th>
+                  <th>Proveedor</th>
+                  <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {productosFiltrados.length === 0 ? (
-                  <tr>
-                    <td colSpan="6" className="no-resultados">No se encontraron productos</td>
-                  </tr>
+                  <tr><td colSpan="7" className="no-resultados">No se encontraron productos</td></tr>
                 ) : (
-                  productosFiltrados.map(producto => (
-                    <tr key={producto.id}>
-                      <td>{producto.codigo}</td>
-                      <td>{producto.nombre}</td>
-                      <td>{producto.categoria}</td>
-                      <td>${producto.precio.toFixed(2)}</td>
-                      <td>
-                        <span className={`stock ${producto.stock <= producto.stockMinimo ? 'bajo' : ''}`}>
-                          {producto.stock} {producto.unidadMedida}
-                        </span>
+                  productosFiltrados.map(p => (
+                    <tr key={p.id}>
+                      <td>{p.id}</td>
+                      <td>{p.nombre}</td>
+                      <td className={`categoria-${p.categoria}`}>
+                        {p.categoria === 'plantas' ? '🌱 Plantas' : '🛠️ Herramientas'}
                       </td>
+                      <td>${p.precio.toFixed(2)}</td>
+                      <td>{p.stock}</td>
+                      <td>{p.proveedor}</td>
                       <td>
-                        {producto.stock === 0 ? (
-                          <span className="estado agotado">Agotado</span>
-                        ) : producto.stock <= producto.stockMinimo ? (
-                          <span className="estado bajo">Stock Bajo</span>
-                        ) : (
-                          <span className="estado disponible">Disponible</span>
-                        )}
+                        <button onClick={() => editarProducto(p)} className="editar-btn">Editar</button>
                       </td>
                     </tr>
                   ))
@@ -293,23 +300,28 @@ const AlmacenistaPanel = () => {
               </tbody>
             </table>
           </div>
-          
+
           <div className="resumen-inventario">
             <div className="resumen-item">
-              <span>Productos registrados:</span>
+              <span>Total productos:</span>
               <span>{productos.length}</span>
             </div>
             <div className="resumen-item">
-              <span>Productos con stock bajo:</span>
-              <span>{productos.filter(p => p.stock <= p.stockMinimo).length}</span>
+              <span>Plantas:</span>
+              <span>{productos.filter(p => p.categoria === 'plantas').length}</span>
             </div>
             <div className="resumen-item">
-              <span>Productos agotados:</span>
-              <span>{productos.filter(p => p.stock === 0).length}</span>
+              <span>Herramientas:</span>
+              <span>{productos.filter(p => p.categoria === 'herramientas').length}</span>
             </div>
           </div>
         </div>
       </div>
+
+      <footer className="panel-footer">
+        <img src={logo} alt="GreenHouse Logo" className="footer-logo" />
+        <p>© {new Date().getFullYear()} GreenHouse</p>
+      </footer>
     </div>
   );
 };

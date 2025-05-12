@@ -1,0 +1,87 @@
+.reports-wrapper {
+  max-width: 1000px;
+  margin: auto;
+  padding: 20px;
+  font-family: 'Segoe UI', sans-serif;
+  background: #f7f9fb;
+  border-radius: 10px;
+}
+
+h2 {
+  color: #2e7d32;
+  text-align: center;
+}
+
+.date-filter {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.date-filter input,
+.date-filter button {
+  padding: 10px;
+  font-size: 0.95rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.date-filter button {
+  background-color: #2e7d32;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.date-filter button:hover {
+  background-color: #388e3c;
+}
+
+.tabla-ventas,
+.tabla-productos {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background-color: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.tabla-ventas th,
+.tabla-productos th {
+  background: #e0f2f1;
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+}
+
+.tabla-ventas td,
+.tabla-productos td {
+  padding: 10px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.detalle-btn {
+  background-color: #1565c0;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.detalle-btn:hover {
+  background-color: #1976d2;
+}
+
+.productos-vendidos h3 {
+  margin-top: 30px;
+  color: #333;
+}
+
+.error {
+  color: red;
+  text-align: center;
+}
