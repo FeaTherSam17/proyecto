@@ -1130,7 +1130,7 @@ app.put('/tareas/:id/completar', (req, res) => {
   const { id } = req.params;
   console.log(`✅ Completando tarea ID: ${id}`);
 
-  const sql = 'UPDATE tareas SET completada = 1, fecha_completada = NOW() WHERE id_tarea = ?';
+  const sql = 'UPDATE tareas SET completada = 1 WHERE id_tarea = ?';
 
   db.query(sql, [id], (err, result) => {
     if (err) {
