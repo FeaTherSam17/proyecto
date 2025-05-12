@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeftOnRectangleIcon } from '@heroicons/react/24/outline';
 import './CajeroPanel.css';
 import logo from '../Login/assets/logo.png';
 
@@ -85,10 +84,6 @@ const CajeroPanel = () => {
     };
   }, [navigate]);
 
-  const getCategoriaNombre = (id) => {
-    const categoria = categorias.find(c => c.id_categoria === id);
-    return categoria ? categoria.nombre : 'Sin categoría';
-  };
 
   const agregarProducto = (producto) => {
     const itemExistente = ventaActual.items.find(item => item.id_producto === producto.id_producto);
@@ -166,8 +161,10 @@ const CajeroPanel = () => {
 
   const productosFiltrados = productos.filter(producto => {
     const coincideBusqueda = producto.nombre.toLowerCase().includes(busqueda.toLowerCase());
-    const coincideCategoria = categoriaFiltro === 'todas' || 
-      getCategoriaNombre(producto.id_categoria) === categoriaFiltro;
+    let coincideCategoria = true;
+    if (categoriaFiltro !== 'todas') {
+      coincideCategoria = producto.categoria === categorias.find(c => String(c.id_categoria) === String(categoriaFiltro))?.nombre;
+    }
     return coincideBusqueda && coincideCategoria;
   });
 
@@ -321,20 +318,43 @@ const CajeroPanel = () => {
               >
                 <option value="todas">Todas las categorías</option>
                 {categorias.map(categoria => (
-                  <option key={categoria.id_categoria} value={categoria.nombre}>
+                  <option key={categoria.id_categoria} value={categoria.id_categoria}>
                     {categoria.nombre}
                   </option>
                 ))}
+                {/* Eliminada la opción de "sin_categoria" */}
               </select>
             </div>
           </div>
 
           <div className="productos-categorizados">
-            {productosPorCategoria.map(grupo => (
-              <div key={grupo.nombre} className="categoria-grupo">
-                <h3 className="titulo-categoria">{grupo.nombre}</h3>
-                <div className="productos-grid">
-                  {grupo.productos.map(producto => (
+            {categoriaFiltro === 'todas' ? (
+              productosPorCategoria.map(grupo => (
+                <div key={grupo.nombre} className="categoria-grupo">
+                  <h3 className="titulo-categoria">{grupo.nombre}</h3>
+                  <div className="productos-grid">
+                    {grupo.productos.map(producto => (
+                      <div
+                        key={producto.id_producto}
+                        className={`producto-card ${producto.stock <= 0 ? 'agotado' : ''}`}
+                        onClick={() => producto.stock > 0 && agregarProducto(producto)}
+                      >
+                        <h3>{producto.nombre}</h3>
+                        <p className="precio">${producto.precio.toFixed(2)}</p>
+                        <p className="stock">
+                          {producto.stock <= 0 ? 'AGOTADO' : `Stock: ${producto.stock}`}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="productos-grid">
+                {productosFiltrados.length === 0 ? (
+                  <p>No hay productos para esta categoría.</p>
+                ) : (
+                  productosFiltrados.map(producto => (
                     <div
                       key={producto.id_producto}
                       className={`producto-card ${producto.stock <= 0 ? 'agotado' : ''}`}
@@ -346,10 +366,10 @@ const CajeroPanel = () => {
                         {producto.stock <= 0 ? 'AGOTADO' : `Stock: ${producto.stock}`}
                       </p>
                     </div>
-                  ))}
-                </div>
+                  ))
+                )}
               </div>
-            ))}
+            )}
           </div>
         </div>
 
