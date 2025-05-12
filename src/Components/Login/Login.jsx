@@ -161,7 +161,7 @@ const Login = () => {
         <div className="about-section">
           <div className="about-content">
             <h3>Acerca del sistema</h3>
-            <p>Versión 1.5.2 (Estable) - Sistema de administración para invernaderos</p>
+            <p>Versión 1.5.2.1 (Estable) - Sistema de administración para invernaderos</p>
             <p>© {new Date().getFullYear()} Todos los derechos reservados</p> {/* Muestra el año actual */}
           </div>
         </div>
