@@ -9,28 +9,30 @@ const JardineroPanel = () => {
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [cargando, setCargando] = useState(true);
 
+  // Mueve cargarTareas fuera del useEffect para poder reutilizarla
+  const cargarTareas = async () => {
+    try {
+      const idJardinero = localStorage.getItem('id_usuario');
+      if (!idJardinero) {
+        console.error('No se encontró ID de jardinero');
+        return;
+      }
+      const respuesta = await fetch(`http://localhost:3001/tareas/jardinero/${idJardinero}`);
+      const datos = await respuesta.json();
+      if (!respuesta.ok) {
+        console.error('Error al obtener tareas:', datos.error || 'Error desconocido');
+        throw new Error(datos.error || 'Error al cargar tareas');
+      }
+      setTareas(datos.tareas || []);
+    } catch (error) {
+      console.error('Error al cargar tareas:', error);
+    } finally {
+      setCargando(false);
+    }
+  };
+
   // Cargar tareas al montar el componente
   useEffect(() => {
-    const cargarTareas = async () => {
-      try {
-        const idJardinero = localStorage.getItem('id_usuario');
-        if (!idJardinero) {
-          console.error('No se encontró ID de jardinero');
-          return;
-        }
-        const respuesta = await fetch(`http://localhost:3001/tareas/jardinero/${idJardinero}`);
-        const datos = await respuesta.json();
-        if (!respuesta.ok) {
-          console.error('Error al obtener tareas:', datos.error || 'Error desconocido');
-          throw new Error(datos.error || 'Error al cargar tareas');
-        }
-        setTareas(datos.tareas || []);
-      } catch (error) {
-        console.error('Error al cargar tareas:', error);
-      } finally {
-        setCargando(false);
-      }
-    };
     cargarTareas();
   }, []);
 
@@ -43,9 +45,8 @@ const JardineroPanel = () => {
       if (!respuesta.ok) {
         throw new Error(datos.error || 'Error al completar tarea');
       }
-      setTareas(tareas.map(t => 
-        t.id_tarea === id ? { ...t, completada: true } : t
-      ));
+      // Recargar tareas desde el backend
+      cargarTareas();
       if (tareaSeleccionada?.id_tarea === id) {
         setTareaSeleccionada(null);
       }
