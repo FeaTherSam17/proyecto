@@ -8,7 +8,7 @@ const app = express();
 
 // Configuración del middleware CORS
 app.use(cors({
-  origin: 'http://localhost:3000', // Permite solo solicitudes desde este origen
+  origin: ['http://localhost:3000', 'http://192.168.56.1:3000'], // Permite ambos orígenes
   methods: ['GET', 'POST', 'PUT', 'DELETE'], // Métodos HTTP permitidos
   allowedHeaders: ['Content-Type', 'Cache-Control', 'Authorization'], // Cabeceras que el cliente puede enviar
 }));
@@ -89,6 +89,29 @@ app.post('/login', (req, res) => {
 });
 
 // -------------------- USUARIOS --------------------
+// Endpoint to get a single user's full data by ID
+app.get('/usuarios/:id', (req, res) => {
+  const { id } = req.params;
+  const sql = `
+    SELECT 
+      id_usuario AS ID,
+      nombre,
+      apellidoP AS apellidoPat,
+      apellidoM AS apellidoMat,
+      username,
+      password,
+      id_rol AS role,
+      DATE_FORMAT(fecha_creacion, '%d/%m/%Y') AS fecha_creacion
+    FROM usuarios
+    WHERE id_usuario = ?
+  `;
+  db.query(sql, [id], (err, results) => {
+    if (err) return res.status(500).json({ error: 'Error al obtener usuario' });
+    if (!results.length) return res.status(404).json({ error: 'Usuario no encontrado' });
+    res.json(results[0]);
+  });
+});
+
 app.get('/usuarios', (req, res) => {
   // Consulta SQL que retorna los datos de los usuarios formateados
   const sql = `
@@ -643,38 +666,78 @@ app.get('/productos', (req, res) => {
       p.nombre,
       c.nombre AS categoria,
       p.precio,
-      p.stock,  -- Nos aseguramos de traer el stock disponible
+      p.stock,
       pr.nombre AS proveedor
-    FROM producto p
-    LEFT JOIN categorias c ON p.id_categoria = c.id_categoria
-    LEFT JOIN proveedores pr ON p.id_proveedor = pr.id_proveedor
+    FROM Producto p
+    LEFT JOIN Categorias c ON p.id_categoria = c.id_categoria
+    LEFT JOIN Proveedores pr ON p.id_proveedor = pr.id_proveedor
   `;
 
-  // Ejecutamos la consulta para obtener los productos
-  db.query(sql, (err, resultados) => {
+  db.query(sql, (err, results) => {
     if (err) {
       console.error('❌ Error al obtener productos:', err);
       return res.status(500).json({ 
+        success: false, 
+        mensaje: 'Error del servidor al obtener los productos',
+        error: err.message 
+      });
+    }
+
+    res.json({
+      success: true,
+      productos: results
+    });
+  });
+});
+
+// Eliminar un producto por su ID
+app.delete('/productos/:id', (req, res) => {
+  const { id } = req.params;
+  const sql = 'DELETE FROM producto WHERE id_producto = ?';
+  db.query(sql, [id], (err, result) => {
+    if (err) {
+      console.error('❌ Error al eliminar producto:', err);
+      return res.status(500).json({
         success: false,
-        message: 'Error al obtener productos',
+        mensaje: 'Error del servidor al eliminar el producto',
         error: err.message
       });
     }
-
-    // Si no hay productos registrados
-    if (!resultados || resultados.length === 0) {
-      return res.status(200).json({
-        success: true,
-        message: 'No se encontraron productos',
-        data: []
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        success: false,
+        mensaje: 'Producto no encontrado'
       });
     }
-
-    // Enviamos los productos obtenidos
-    res.status(200).json({
+    res.json({
       success: true,
-      message: 'Productos obtenidos correctamente',
-      data: resultados
+      mensaje: 'Producto eliminado correctamente'
+    });
+  });
+});
+
+// Delete a product by its ID
+app.delete('/productos/:id', (req, res) => {
+  const { id } = req.params;
+  const sql = 'DELETE FROM producto WHERE id_producto = ?';
+  db.query(sql, [id], (err, result) => {
+    if (err) {
+      console.error('❌ Error deleting product:', err);
+      return res.status(500).json({
+        success: false,
+        mensaje: 'Server error while deleting product',
+        error: err.message
+      });
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        success: false,
+        mensaje: 'Product not found'
+      });
+    }
+    res.json({
+      success: true,
+      mensaje: 'Product deleted successfully'
     });
   });
 });
@@ -973,6 +1036,32 @@ app.put('/productos/:id', (req, res) => {
   });
 });
 
+// Eliminar un producto por su ID
+app.delete('/productos/:id', (req, res) => {
+  const { id } = req.params;
+  const sql = 'DELETE FROM producto WHERE id_producto = ?';
+  db.query(sql, [id], (err, result) => {
+    if (err) {
+      console.error('❌ Error al eliminar producto:', err);
+      return res.status(500).json({
+        success: false,
+        mensaje: 'Error del servidor al eliminar el producto',
+        error: err.message
+      });
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        success: false,
+        mensaje: 'Producto no encontrado'
+      });
+    }
+    res.json({
+      success: true,
+      mensaje: 'Producto eliminado correctamente'
+    });
+  });
+});
+
 
 // ---------------------- SECCION DEL CAJERO --------------------
 
@@ -1146,6 +1235,8 @@ app.put('/tareas/:id/completar', (req, res) => {
 
 
 // -------------------- INICIAR SERVIDOR --------------------
-app.listen(3001, () => {
-  console.log('✅ Servidor corriendo en http://localhost:3001');
+// Inicialización del servidor en el puerto 3001
+const PORT = 3001;
+app.listen(PORT, () => {
+  console.log(`🚀 Servidor backend escuchando en http://localhost:${PORT}`);
 });

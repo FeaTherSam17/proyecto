@@ -100,8 +100,24 @@ const ReportsPanel = () => {
     <div className="reports-wrapper">
       <h2>Reportes de Ventas</h2>
       <div className="date-filter">
-        <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-        <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+        <div className="date-group">
+          <label htmlFor="start-date">Fecha de inicio</label>
+          <input
+            id="start-date"
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+          />
+        </div>
+        <div className="date-group">
+          <label htmlFor="end-date">Fecha de fin</label>
+          <input
+            id="end-date"
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+          />
+        </div>
         <button onClick={handleCalculate}>Calcular</button>
       </div>
 

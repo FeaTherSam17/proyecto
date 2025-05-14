@@ -41,9 +41,10 @@ const AlmacenistaPanel = () => {
 
         const listaProveedores = proveedoresData.suppliers || [];
 
-        const listaProductos = Array.isArray(productosData)
-          ? productosData
-          : productosData.data || [];
+        // CORREGIDO: Accede a productosData.productos
+        const listaProductos = Array.isArray(productosData.productos)
+          ? productosData.productos
+          : [];
 
         setProveedores(listaProveedores.map(p => ({
           ...p,
@@ -200,7 +201,14 @@ const AlmacenistaPanel = () => {
           <form onSubmit={agregarProducto} className="producto-form">
             <div className="form-group">
               <label>Nombre*:</label>
-              <input type="text" name="nombre" value={nuevoProducto.nombre} onChange={handleInputChange} required />
+              <input
+                type="text"
+                name="nombre"
+                value={nuevoProducto.nombre}
+                onChange={handleInputChange}
+                required
+                maxLength={20}
+              />
             </div>
 
             <div className="form-group">
@@ -213,12 +221,30 @@ const AlmacenistaPanel = () => {
 
             <div className="form-group">
               <label>Precio*:</label>
-              <input type="number" name="precio" value={nuevoProducto.precio} onChange={handleInputChange} min="0" step="0.01" required />
+              <input
+                type="number"
+                name="precio"
+                value={nuevoProducto.precio}
+                onChange={handleInputChange}
+                min="0.01"
+                max="9999"
+                step="0.01"
+                required
+              />
             </div>
 
             <div className="form-group">
               <label>Cantidad:</label>
-              <input type="number" name="cantidad" value={nuevoProducto.cantidad} onChange={handleInputChange} min="0" step="1" />
+              <input
+                type="number"
+                name="cantidad"
+                value={nuevoProducto.cantidad}
+                onChange={handleInputChange}
+                min="1"
+                max="9999"
+                step="1"
+                required
+              />
             </div>
 
             <div className="form-group">
@@ -292,7 +318,31 @@ const AlmacenistaPanel = () => {
                       <td>{p.stock}</td>
                       <td>{p.proveedor}</td>
                       <td>
-                        <button onClick={() => editarProducto(p)} className="editar-btn">Editar</button>
+                        <div className="acciones-btns">
+                          <button onClick={() => editarProducto(p)} className="editar-btn">
+                            ✏️ Editar
+                          </button>
+                          <button
+                            onClick={async () => {
+                              if (window.confirm('¿Seguro que deseas eliminar este producto?')) {
+                                setLoading(true);
+                                try {
+                                  const response = await fetch(`http://localhost:3001/productos/${p.id}`, { method: 'DELETE' });
+                                  if (!response.ok) throw new Error('Error al eliminar producto');
+                                  setProductos(prev => prev.filter(prod => prod.id !== p.id));
+                                } catch (err) {
+                                  setError(err.message);
+                                } finally {
+                                  setLoading(false);
+                                }
+                              }
+                            }}
+                            className="eliminar-btn"
+                            disabled={loading}
+                          >
+                            🗑️ Eliminar
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))

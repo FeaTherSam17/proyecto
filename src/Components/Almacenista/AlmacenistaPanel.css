@@ -322,3 +322,52 @@
     height: 45px;
   }
 }
+
+/* Botones de acciones en la tabla */
+.acciones-btns {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+}
+
+.editar-btn, .eliminar-btn {
+  padding: 4px 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.95em;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  font-weight: 500;
+  outline: none;
+}
+
+.editar-btn {
+  background: #e0f7fa;
+  color: #00796b;
+}
+
+.editar-btn:hover {
+  background: #b2ebf2;
+  color: #004d40;
+}
+
+.eliminar-btn {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.eliminar-btn:hover {
+  background: #ffcdd2;
+  color: #b71c1c;
+}
+
+.editar-btn:hover {
+  background: #f1c40f;
+  color: #fff;
+}
+
+.eliminar-btn:hover {
+  background: #c0392b;
+  color: #fff;
+}

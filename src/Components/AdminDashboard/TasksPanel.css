@@ -418,3 +418,27 @@
     grid-template-columns: 1fr;
   }
 }
+
+.task-card h3,
+.task-card .task-description p {
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-line;
+  max-width: 100%;
+}
+
+.task-card .task-description p {
+  max-height: 6em; /* Ajusta la altura máxima si quieres limitar la descripción */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 6; /* Número de líneas a mostrar */
+  -webkit-box-orient: vertical;
+}
+
+/* Opcional: para que la tarjeta nunca se salga del contenedor */
+.task-card {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}

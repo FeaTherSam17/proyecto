@@ -146,6 +146,7 @@ const TasksPanel = () => {
                   type="text"
                   placeholder="Nombre de la tarea"
                   value={newTask.title}
+                  maxLength={20}
                   onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
                   required
                 />
@@ -156,6 +157,7 @@ const TasksPanel = () => {
                 <textarea
                   placeholder="Instrucciones detalladas..."
                   value={newTask.description}
+                  maxLength={100}
                   onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
                   rows="3"
                 />

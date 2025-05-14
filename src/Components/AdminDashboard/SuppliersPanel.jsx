@@ -118,7 +118,7 @@ const SuppliersPanel = () => {
         id_proveedor: newOperation.supplierId,
         fecha: newOperation.date,
         total: newOperation.amount,
-        descripcion: newOperation.productos.join(', ')
+        descripcion: newOperation.description // Ahora usa description
         // No incluir factura (no existe en la tabla)
       };
 
@@ -246,42 +246,23 @@ const SuppliersPanel = () => {
 
         <div className="actions-panel">
           {activeTab === 'operations' && (
-            <>
-              <button 
-                className="action-button primary"
-                onClick={() => {
-                  setModalType('operation');
-                  setNewOperation({ 
-                    type: 'compra', 
-                    supplierId: suppliers[0]?.id_proveedor || '', 
-                    date: new Date().toISOString().split('T')[0], 
-                    productos: [], 
-                    amount: 0
-                  });
-                  setShowModal(true);
-                }}
-                disabled={isLoading || suppliers.length === 0}
-              >
-                + Registrar Compra
-              </button>
-              <button 
-                className="action-button secondary"
-                onClick={() => {
-                  setModalType('operation');
-                  setNewOperation({ 
-                    type: 'devolucion', 
-                    supplierId: suppliers[0]?.id_proveedor || '', 
-                    date: new Date().toISOString().split('T')[0], 
-                    productos: [], 
-                    amount: 0
-                  });
-                  setShowModal(true);
-                }}
-                disabled={isLoading || suppliers.length === 0}
-              >
-                + Registrar Devolución
-              </button>
-            </>
+            <button 
+              className="action-button primary"
+              onClick={() => {
+                setModalType('operation');
+                setNewOperation({ 
+                  type: 'compra', 
+                  supplierId: suppliers[0]?.id_proveedor || '', 
+                  date: new Date().toISOString().split('T')[0], 
+                  productos: [], 
+                  amount: 0
+                });
+                setShowModal(true);
+              }}
+              disabled={isLoading || suppliers.length === 0}
+            >
+              + Registrar Operación
+            </button>
           )}
 
           {activeTab === 'suppliers' && (
@@ -473,15 +454,16 @@ const SuppliersPanel = () => {
                 </div>
 
                 <div className="form-group">
-                  <label>Productos *</label>
+                  <label>Descripción *</label>
                   <textarea
-                    value={newOperation.productos.join(', ')}
+                    value={newOperation.description || ""}
                     onChange={(e) => setNewOperation({ 
                       ...newOperation, 
-                      productos: e.target.value.split(', ') 
+                      description: e.target.value 
                     })}
                     placeholder="Ej: 50 bolsas de sustrato, 10 litros de fertilizante"
                     required
+                    maxLength={100}
                     disabled={isLoading}
                   />
                 </div>
@@ -541,27 +523,7 @@ const SuppliersPanel = () => {
                           })
                     }
                     required
-                    disabled={isLoading}
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Contacto *</label>
-                  <input
-                    type="text"
-                    value={editingSupplier?.contacto || newSupplier.contacto}
-                    onChange={(e) => 
-                      editingSupplier 
-                        ? setEditingSupplier({ 
-                            ...editingSupplier, 
-                            contacto: e.target.value 
-                          })
-                        : setNewSupplier({ 
-                            ...newSupplier, 
-                            contacto: e.target.value 
-                          })
-                    }
-                    required
+                    maxLength={50}
                     disabled={isLoading}
                   />
                 </div>
@@ -571,18 +533,23 @@ const SuppliersPanel = () => {
                   <input
                     type="tel"
                     value={editingSupplier?.telefono || newSupplier.telefono}
-                    onChange={(e) => 
+                    onChange={(e) => {
+                      const onlyNums = e.target.value.replace(/[^0-9]/g, '');
                       editingSupplier 
                         ? setEditingSupplier({ 
                             ...editingSupplier, 
-                            telefono: e.target.value 
+                            telefono: onlyNums 
                           })
                         : setNewSupplier({ 
                             ...newSupplier, 
-                            telefono: e.target.value 
-                          })
-                    }
+                            telefono: onlyNums 
+                          });
+                    }}
                     required
+                    pattern="[0-9]{10,15}"
+                    maxLength={15}
+                    minLength={10}
+                    placeholder="Ej: 5512345678"
                     disabled={isLoading}
                   />
                 </div>
@@ -604,6 +571,29 @@ const SuppliersPanel = () => {
                           })
                     }
                     required
+                    maxLength={40}
+                    disabled={isLoading}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Contacto *</label>
+                  <input
+                    type="text"
+                    value={editingSupplier?.contacto || newSupplier.contacto}
+                    onChange={(e) => 
+                      editingSupplier 
+                        ? setEditingSupplier({ 
+                            ...editingSupplier, 
+                            contacto: e.target.value 
+                          })
+                        : setNewSupplier({ 
+                            ...newSupplier, 
+                            contacto: e.target.value 
+                          })
+                    }
+                    required
+                    maxLength={30}
                     disabled={isLoading}
                   />
                 </div>
@@ -624,6 +614,7 @@ const SuppliersPanel = () => {
                             factura: e.target.value 
                           })
                     }
+                    maxLength={10}
                     disabled={isLoading}
                   />
                 </div>

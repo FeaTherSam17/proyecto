@@ -14,28 +14,45 @@ h2 {
 
 .date-filter {
   display: flex;
-  gap: 10px;
-  justify-content: center;
+  gap: 16px;
+  align-items: flex-end;
   margin-bottom: 20px;
 }
 
-.date-filter input,
-.date-filter button {
-  padding: 10px;
-  font-size: 0.95rem;
-  border-radius: 6px;
-  border: 1px solid #ccc;
+.date-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.date-group label {
+  font-size: 0.97rem;
+  margin-bottom: 4px;
+  color: #2d3a3a;
+  font-weight: 500;
+}
+
+.date-group input[type="date"] {
+  padding: 6px 10px;
+  border: 1px solid #bfc9d1;
+  border-radius: 5px;
+  font-size: 1rem;
+  background: #f8fafb;
+  color: #222;
 }
 
 .date-filter button {
-  background-color: #2e7d32;
-  color: white;
+  padding: 8px 18px;
+  background: #2e7d32;
+  color: #fff;
   border: none;
+  border-radius: 5px;
+  font-weight: 600;
   cursor: pointer;
+  transition: background 0.2s;
 }
 
 .date-filter button:hover {
-  background-color: #388e3c;
+  background: #256025;
 }
 
 .tabla-ventas,
