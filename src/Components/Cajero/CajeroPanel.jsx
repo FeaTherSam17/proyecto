@@ -58,8 +58,8 @@ const CajeroPanel = () => {
         const productosData = await productosResponse.json();
         const categoriasData = await categoriasResponse.json();
 
-        if (productosData.success) setProductos(productosData.data);
-        if (categoriasData.success) setCategorias(categoriasData.data);
+        if (productosData.success) setProductos(productosData.productos);
+        if (categoriasData.success) setCategorias(categoriasData.categorias);
 
       } catch (err) {
         setError(err.message);

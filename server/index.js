@@ -1082,37 +1082,34 @@ app.get('/categorias', (req, res) => {
       return res.status(200).json({
         success: true,
         message: 'No se encontraron categorías',
-        data: []
+        categorias: []
       });
     }
 
     res.status(200).json({
       success: true,
       message: 'Categorías obtenidas correctamente',
-      data: resultados
+      categorias: resultados
     });
   });
 });
 
-// Registrar una venta con sus detalles
-// Registrar una venta con sus detalles
-app.post('/ventas', (req, res) => {
-  const { fecha, total, items } = req.body;
+// Registrar una venta con sus detalles 
+app.post('/ventas', (req, res) => { 
+  const { fecha, total, items } = req.body; 
 
-  if (!fecha || !total || !items || items.length === 0) {
-    return res.status(400).json({ success: false, message: "Datos incompletos para la venta" });
-  }
+  if (!fecha || !total || !items || items.length === 0) { 
+    return res.status(400).json({ success: false, message: "Datos incompletos para la venta" }); 
+  } 
 
-  // Verificar que hay suficiente stock para los productos
-  const checkStockSql = `
-    SELECT p.id_producto, p.stock, SUM(d.cantidad) AS cantidad_vendida
-    FROM detalle_ventas d
-    JOIN producto p ON d.id_producto = p.id_producto
-    WHERE p.id_producto IN (?)
-    GROUP BY p.id_producto
-  `;
-
+  // Verificar que hay suficiente stock para los productos 
   const productIds = items.map(item => item.id_producto);
+
+  const checkStockSql = `
+    SELECT id_producto, stock
+    FROM producto
+    WHERE id_producto IN (?)
+  `;
 
   db.query(checkStockSql, [productIds], (err, stockResults) => {
     if (err) {
@@ -1129,7 +1126,7 @@ app.post('/ventas', (req, res) => {
       return res.status(400).json({ success: false, message: "No hay suficiente stock para algunos productos" });
     }
 
-    // Registrar la venta
+    // Registrar la venta 
     const sqlVenta = 'INSERT INTO Ventas (fecha, total) VALUES (?, ?)';
     db.query(sqlVenta, [fecha, total], (err, resultadoVenta) => {
       if (err) {
@@ -1139,7 +1136,7 @@ app.post('/ventas', (req, res) => {
 
       const idVenta = resultadoVenta.insertId;
 
-      // Registrar el detalle de la venta y actualizar el stock
+      // Registrar el detalle de la venta y actualizar el stock 
       const detalles = items.map(item => [
         idVenta,
         item.id_producto,
@@ -1149,8 +1146,8 @@ app.post('/ventas', (req, res) => {
       ]);
 
       const sqlDetalle = `
-        INSERT INTO Detalle_ventas 
-        (id_venta, id_producto, cantidad, precio_unitario, total) 
+        INSERT INTO Detalle_ventas
+        (id_venta, id_producto, cantidad, precio_unitario, total)
         VALUES ?
       `;
 
@@ -1160,7 +1157,7 @@ app.post('/ventas', (req, res) => {
           return res.status(500).json({ success: false, message: "Error al registrar detalle", error: err2.message });
         }
 
-        // Actualizar el stock de los productos vendidos
+        // Actualizar el stock de los productos vendidos 
         const updateStockSql = `
           UPDATE producto
           SET stock = stock - ?
