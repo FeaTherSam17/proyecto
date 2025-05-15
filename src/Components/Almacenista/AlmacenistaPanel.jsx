@@ -28,8 +28,8 @@ const AlmacenistaPanel = () => {
       setError(null);
       try {
         const [productosResp, proveedoresResp] = await Promise.all([
-          fetch('http://localhost:3001/productos'),
-          fetch('http://localhost:3001/suppliers')
+          fetch('http://proyecto.railway.internal/productos'), // URL actualizada
+          fetch('http://proyecto.railway.internal/suppliers') // URL actualizada
         ]);
 
         if (!productosResp.ok || !proveedoresResp.ok) {
@@ -38,7 +38,7 @@ const AlmacenistaPanel = () => {
 
         const productosData = await productosResp.json();
         const proveedoresData = await proveedoresResp.json();
-
+al
         const listaProveedores = proveedoresData.suppliers || [];
 
         // CORREGIDO: Accede a productosData.productos
@@ -94,8 +94,8 @@ const AlmacenistaPanel = () => {
     try {
       const method = editando ? 'PUT' : 'POST';
       const url = editando
-        ? `http://localhost:3001/productos/${editando}`
-        : 'http://localhost:3001/productos';
+        ? `http://proyecto.railway.internal/productos/${editando}` // URL actualizada
+        : 'http://proyecto.railway.internal/productos'; // URL actualizada
 
       const response = await fetch(url, {
         method,
@@ -327,7 +327,7 @@ const AlmacenistaPanel = () => {
                               if (window.confirm('¿Seguro que deseas eliminar este producto?')) {
                                 setLoading(true);
                                 try {
-                                  const response = await fetch(`http://localhost:3001/productos/${p.id}`, { method: 'DELETE' });
+                                  const response = await fetch(`http://proyecto.railway.internal/productos/${p.id}`, { method: 'DELETE' }); // URL actualizada
                                   if (!response.ok) throw new Error('Error al eliminar producto');
                                   setProductos(prev => prev.filter(prod => prod.id !== p.id));
                                 } catch (err) {

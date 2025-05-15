@@ -17,7 +17,7 @@ const JardineroPanel = () => {
         console.error('No se encontró ID de jardinero');
         return;
       }
-      const respuesta = await fetch(`http://localhost:3001/tareas/jardinero/${idJardinero}`);
+      const respuesta = await fetch(`http://proyecto.railway.internal/tareas/jardinero/${idJardinero}`); // URL actualizada
       const datos = await respuesta.json();
       if (!respuesta.ok) {
         console.error('Error al obtener tareas:', datos.error || 'Error desconocido');
@@ -38,7 +38,7 @@ const JardineroPanel = () => {
 
   const completarTarea = async (id) => {
     try {
-      const respuesta = await fetch(`http://localhost:3001/tareas/${id}/completar`, {
+      const respuesta = await fetch(`http://proyecto.railway.internal/tareas/${id}/completar`, { // URL actualizada
         method: 'PUT'
       });
       const datos = await respuesta.json();

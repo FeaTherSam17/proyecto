@@ -29,7 +29,7 @@ const UserManagement = () => {
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    fetch('http://localhost:3001/usuarios')
+    fetch('http://proyecto.railway.internal/usuarios') // URL actualizada
       .then(response => response.json())
       .then(data => setUsers(data))
       .catch(error => console.error('Error al cargar usuarios:', error));
@@ -52,7 +52,7 @@ const UserManagement = () => {
   const openEditModal = async (user) => {
     try {
       // Petición al backend para obtener los datos completos del usuario
-      const res = await fetch(`http://localhost:3001/usuarios/${user.ID}`);
+      const res = await fetch(`http://proyecto.railway.internal/usuarios/${user.ID}`); // URL actualizada
       if (!res.ok) throw new Error('No se pudo obtener el usuario');
       const userData = await res.json();
   
@@ -111,13 +111,13 @@ const UserManagement = () => {
       };
       let response, result;
       if (editingUser) {
-        response = await fetch(`http://localhost:3001/usuarios/${editingUser.ID || editingUser.id_usuario}`, {
+        response = await fetch(`http://proyecto.railway.internal/usuarios/${editingUser.ID || editingUser.id_usuario}`, { // URL actualizada
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(userToSend)
         });
       } else {
-        response = await fetch('http://localhost:3001/usuarios', {
+        response = await fetch('http://proyecto.railway.internal/usuarios', { // URL actualizada
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(userToSend)
@@ -125,7 +125,7 @@ const UserManagement = () => {
       }
       result = await response.json();
       if (result.success) {
-        const updatedUsers = await fetch('http://localhost:3001/usuarios').then(res => res.json());
+        const updatedUsers = await fetch('http://proyecto.railway.internal/usuarios').then(res => res.json()); // URL actualizada
         setUsers(updatedUsers);
         closeModal();
       } else {
@@ -140,7 +140,7 @@ const UserManagement = () => {
     if (isAdmin) return;
     if (window.confirm('¿Estás seguro de eliminar este usuario?')) {
       try {
-        const res = await fetch(`http://localhost:3001/usuarios/${id}`, { method: 'DELETE' });
+        const res = await fetch(`http://proyecto.railway.internal/usuarios/${id}`, { method: 'DELETE' }); // URL actualizada
         const result = await res.json();
         if (result.success) {
           setUsers(users.filter(user => (user.ID || user.id_usuario) !== id));

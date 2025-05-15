@@ -39,13 +39,13 @@ const CajeroPanel = () => {
       try {
         setLoading(true);
         
-        const productosResponse = await fetch('http://localhost:3001/productos', {
+        const productosResponse = await fetch('http://proyecto.railway.internal/productos', { // URL actualizada
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
         });
         
-        const categoriasResponse = await fetch('http://localhost:3001/categorias', {
+        const categoriasResponse = await fetch('http://proyecto.railway.internal/categorias', { // URL actualizada
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
@@ -193,7 +193,7 @@ const CajeroPanel = () => {
 
   const handleLogout = async () => {
     try {
-      await fetch('http://localhost:3001/api/logout', {
+      await fetch('http://proyecto.railway.internal/api/logout', { // URL actualizada
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -225,7 +225,7 @@ const CajeroPanel = () => {
     };
 
     try {
-      const response = await fetch('http://localhost:3001/ventas', {
+      const response = await fetch('http://proyecto.railway.internal/ventas', { // URL actualizada
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',

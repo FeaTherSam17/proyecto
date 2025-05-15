@@ -32,8 +32,8 @@ const SuppliersPanel = () => {
       setIsLoading(true);
       try {
         const [suppliersRes, operationsRes] = await Promise.all([
-          fetch('/suppliers'),
-          fetch('/operaciones-proveedores')
+          fetch('http://proyecto.railway.internal/suppliers'), // URL actualizada
+          fetch('http://proyecto.railway.internal/operaciones-proveedores') // URL actualizada
         ]);
 
         if (!suppliersRes.ok) throw new Error('Error al cargar proveedores');
@@ -62,8 +62,8 @@ const SuppliersPanel = () => {
 
     try {
       const url = editingSupplier 
-        ? `/suppliers/${editingSupplier.id_proveedor}`
-        : '/suppliers';
+        ? `http://proyecto.railway.internal/suppliers/${editingSupplier.id_proveedor}` // URL actualizada
+        : 'http://proyecto.railway.internal/suppliers'; // URL actualizada
       const method = editingSupplier ? 'PUT' : 'POST';
 
       const response = await fetch(url, {
@@ -122,7 +122,7 @@ const SuppliersPanel = () => {
         // No incluir factura (no existe en la tabla)
       };
 
-      const response = await fetch('/operaciones-proveedores', {
+      const response = await fetch('http://proyecto.railway.internal/operaciones-proveedores', { // URL actualizada
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(operationData)
@@ -160,7 +160,7 @@ const SuppliersPanel = () => {
     
     setIsLoading(true);
     try {
-      const response = await fetch(`/suppliers/${id}`, { method: 'DELETE' });
+      const response = await fetch(`http://proyecto.railway.internal/suppliers/${id}`, { method: 'DELETE' }); // URL actualizada
       const data = await response.json();
 
       if (!response.ok) throw new Error(data.error || 'Error al eliminar');
@@ -181,7 +181,7 @@ const SuppliersPanel = () => {
     
     setIsLoading(true);
     try {
-      const response = await fetch(`/operaciones-proveedores/${id}`, { method: 'DELETE' });
+      const response = await fetch(`http://proyecto.railway.internal/operaciones-proveedores/${id}`, { method: 'DELETE' }); // URL actualizada
       const data = await response.json();
 
       if (!response.ok) throw new Error(data.error || 'Error al eliminar');
