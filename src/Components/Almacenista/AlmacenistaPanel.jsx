@@ -38,7 +38,7 @@ const AlmacenistaPanel = () => {
 
         const productosData = await productosResp.json();
         const proveedoresData = await proveedoresResp.json();
-        // Se eliminó "al" de esta línea que causaba error
+al
         const listaProveedores = proveedoresData.suppliers || [];
 
         // CORREGIDO: Accede a productosData.productos
@@ -113,7 +113,7 @@ const AlmacenistaPanel = () => {
 
       if (!response.ok) throw new Error(data.message || 'Error al guardar producto');
 
-      const proveedorNombre = proveedores.find(p => p.id === nuevoProducto.proveedor)?.nombre || 'Sin proveedor'; // Se cambió == por ===
+      const proveedorNombre = proveedores.find(p => p.id == nuevoProducto.proveedor)?.nombre || 'Sin proveedor';
 
       if (editando) {
         // Actualizar producto editado en estado
