@@ -7,10 +7,9 @@ const app = express();
 //mysql://root:BijghlBrLJRskbVrUtZSKeqjqajzhVuu@gondola.proxy.rlwy.net:38108/railway
 // Configuración del middleware CORS
 app.use(cors({
-  origin: process.env.URLFRONTEND || 'https://green-house-a50d4.web.app', 
+  origin: ['http://localhost:3000', 'http://192.168.56.1:3000'], // Permite ambos orígenes
   methods: ['GET', 'POST', 'PUT', 'DELETE'], // Métodos HTTP permitidos
   allowedHeaders: ['Content-Type', 'Cache-Control', 'Authorization'], // Cabeceras que el cliente puede enviar
-  credentials: true // Añadido para permitir credenciales
 }));
 
 // Middleware para que Express pueda interpretar cuerpos JSON en las solicitudes
@@ -18,11 +17,11 @@ app.use(express.json());
 
 // Configuración de la conexión a la base de datos MySQL
 const db = mysql.createConnection({
-  host: 'gondola.proxy.rlwy.net',
-  user: 'root',
-  password: 'BijghlBrLJRskbVrUtZSKeqjqajzhVuu',
-  database: 'railway',
-  port: 38108
+  host: 'localhost',     // Dirección del servidor de la base de datos (localhost = el mismo equipo)
+  user: 'root',          // Usuario con el que se conectará
+  password: '',          // Contraseña del usuario (vacía en este caso)
+  database: 'invernadero', // Nombre de la base de datos que se utilizará
+  port: 3306             // Puerto por defecto de MySQL
 });
 
 // Intento de conexión a la base de datos
@@ -1233,7 +1232,7 @@ app.put('/tareas/:id/completar', (req, res) => {
 
 // -------------------- INICIAR SERVIDOR --------------------
 // Inicialización del servidor en el puerto 3001
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`🚀 Servidor backend escuchando en el puerto ${PORT}`);
 });
