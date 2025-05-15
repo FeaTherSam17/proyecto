@@ -36,9 +36,6 @@ db.connect((err) => {
 });
 
 
-//DOCUMENTAR LOS METODOS HTTP Y LA INICIALIZACION DEL SERVIDOR
-
-
 
 // -------------------- LOGIN --------------------
 app.post('/login', (req, res) => {
@@ -670,6 +667,7 @@ app.get('/productos', (req, res) => {
     FROM Producto p
     LEFT JOIN Categorias c ON p.id_categoria = c.id_categoria
     LEFT JOIN Proveedores pr ON p.id_proveedor = pr.id_proveedor
+    WHERE p.activo = TRUE
   `;
 
   db.query(sql, (err, results) => {
@@ -689,28 +687,26 @@ app.get('/productos', (req, res) => {
   });
 });
 
-// Eliminar un producto por su ID
+// Ruta para eliminar un producto (marcar como inactivo en lugar de borrar)
 app.delete('/productos/:id', (req, res) => {
   const { id } = req.params;
-  const sql = 'DELETE FROM producto WHERE id_producto = ?';
-  db.query(sql, [id], (err, result) => {
+
+  // En lugar de DELETE, hacemos un UPDATE para marcar como inactivo
+  const sql = 'UPDATE Producto SET activo = FALSE WHERE id_producto = ?';
+  
+  db.query(sql, [id], (err) => {
     if (err) {
-      console.error('❌ Error al eliminar producto:', err);
-      return res.status(500).json({
-        success: false,
-        mensaje: 'Error del servidor al eliminar el producto',
-        error: err.message
+      console.error('Error al marcar producto como inactivo:', err);
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Error al marcar producto como inactivo',
+        details: err.message
       });
     }
-    if (result.affectedRows === 0) {
-      return res.status(404).json({
-        success: false,
-        mensaje: 'Producto no encontrado'
-      });
-    }
+
     res.json({
       success: true,
-      mensaje: 'Producto eliminado correctamente'
+      message: 'Producto marcado como inactivo correctamente'
     });
   });
 });
@@ -1035,28 +1031,26 @@ app.put('/productos/:id', (req, res) => {
   });
 });
 
-// Eliminar un producto por su ID
+// Ruta para eliminar un producto (marcar como inactivo en lugar de borrar)
 app.delete('/productos/:id', (req, res) => {
   const { id } = req.params;
-  const sql = 'DELETE FROM producto WHERE id_producto = ?';
-  db.query(sql, [id], (err, result) => {
+
+  // En lugar de DELETE, hacemos un UPDATE para marcar como inactivo
+  const sql = 'UPDATE Producto SET activo = FALSE WHERE id_producto = ?';
+  
+  db.query(sql, [id], (err) => {
     if (err) {
-      console.error('❌ Error al eliminar producto:', err);
-      return res.status(500).json({
-        success: false,
-        mensaje: 'Error del servidor al eliminar el producto',
-        error: err.message
+      console.error('Error al marcar producto como inactivo:', err);
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Error al marcar producto como inactivo',
+        details: err.message
       });
     }
-    if (result.affectedRows === 0) {
-      return res.status(404).json({
-        success: false,
-        mensaje: 'Producto no encontrado'
-      });
-    }
+
     res.json({
       success: true,
-      mensaje: 'Producto eliminado correctamente'
+      message: 'Producto marcado como inactivo correctamente'
     });
   });
 });

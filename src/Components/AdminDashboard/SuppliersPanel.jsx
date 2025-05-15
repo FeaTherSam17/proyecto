@@ -32,8 +32,8 @@ const SuppliersPanel = () => {
       setIsLoading(true);
       try {
         const [suppliersRes, operationsRes] = await Promise.all([
-          fetch('https://proyecto-production-600d.up.railway.app/suppliers'), // URL actualizada
-          fetch('https://proyecto-production-600d.up.railway.app/operaciones-proveedores') // URL actualizada
+          fetch('http://localhost:3001/suppliers'),
+          fetch('http://localhost:3001/operaciones-proveedores')
         ]);
 
         if (!suppliersRes.ok) throw new Error('Error al cargar proveedores');
@@ -62,8 +62,8 @@ const SuppliersPanel = () => {
 
     try {
       const url = editingSupplier 
-        ? `https://proyecto-production-600d.up.railway.app/suppliers/${editingSupplier.id_proveedor}` // URL actualizada
-        : 'https://proyecto-production-600d.up.railway.app/suppliers'; // URL actualizada
+        ? `http://localhost:3001/suppliers/${editingSupplier.id_proveedor}`
+        : 'http://localhost:3001/suppliers';
       const method = editingSupplier ? 'PUT' : 'POST';
 
       const response = await fetch(url, {
@@ -122,7 +122,7 @@ const SuppliersPanel = () => {
         // No incluir factura (no existe en la tabla)
       };
 
-      const response = await fetch('https://proyecto-production-600d.up.railway.app/operaciones-proveedores', { // URL actualizada
+      const response = await fetch('http://localhost:3001/operaciones-proveedores', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(operationData)
@@ -160,7 +160,7 @@ const SuppliersPanel = () => {
     
     setIsLoading(true);
     try {
-      const response = await fetch(`https://proyecto-production-600d.up.railway.app/suppliers/${id}`, { method: 'DELETE' }); // URL actualizada
+      const response = await fetch(`http://localhost:3001/suppliers/${id}`, { method: 'DELETE' });
       const data = await response.json();
 
       if (!response.ok) throw new Error(data.error || 'Error al eliminar');
@@ -181,7 +181,7 @@ const SuppliersPanel = () => {
     
     setIsLoading(true);
     try {
-      const response = await fetch(`https://proyecto-production-600d.up.railway.app/operaciones-proveedores/${id}`, { method: 'DELETE' }); // URL actualizada
+      const response = await fetch(`http://localhost:3001/operaciones-proveedores/${id}`, { method: 'DELETE' });
       const data = await response.json();
 
       if (!response.ok) throw new Error(data.error || 'Error al eliminar');

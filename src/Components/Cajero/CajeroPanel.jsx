@@ -39,13 +39,13 @@ const CajeroPanel = () => {
       try {
         setLoading(true);
         
-        const productosResponse = await fetch('https://proyecto-production-600d.up.railway.app/productos', { // URL actualizada
+        const productosResponse = await fetch('http://localhost:3001/productos', {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
         });
         
-        const categoriasResponse = await fetch('https://proyecto-production-600d.up.railway.app/categorias', { // URL actualizada
+        const categoriasResponse = await fetch('http://localhost:3001/categorias', {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
@@ -58,7 +58,13 @@ const CajeroPanel = () => {
         const productosData = await productosResponse.json();
         const categoriasData = await categoriasResponse.json();
 
-        if (productosData.success) setProductos(productosData.productos);
+        if (productosData.success) {
+          setProductos(productosData.productos.map(p => ({
+            ...p,
+            precio: Number(p.precio) || 0,
+            stock: Number(p.stock) || 0
+          })));
+        }
         if (categoriasData.success) setCategorias(categoriasData.categorias);
 
       } catch (err) {
@@ -193,7 +199,7 @@ const CajeroPanel = () => {
 
   const handleLogout = async () => {
     try {
-      await fetch('https://proyecto-production-600d.up.railway.app/api/logout', { // URL actualizada
+      await fetch('http://localhost:3001/api/logout', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -225,7 +231,7 @@ const CajeroPanel = () => {
     };
 
     try {
-      const response = await fetch('https://proyecto-production-600d.up.railway.app/ventas', { // URL actualizada
+      const response = await fetch('http://localhost:3001/ventas', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -340,7 +346,7 @@ const CajeroPanel = () => {
                         onClick={() => producto.stock > 0 && agregarProducto(producto)}
                       >
                         <h3>{producto.nombre}</h3>
-                        <p className="precio">${producto.precio.toFixed(2)}</p>
+                        <p className="precio">${(Number(producto.precio) || 0).toFixed(2)}</p>
                         <p className="stock">
                           {producto.stock <= 0 ? 'AGOTADO' : `Stock: ${producto.stock}`}
                         </p>

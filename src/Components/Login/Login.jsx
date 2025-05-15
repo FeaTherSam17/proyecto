@@ -31,7 +31,7 @@ const Login = () => {
 
     try {
       // Petición POST al backend para autenticación
-      const response = await fetch('https://proyecto-production-600d.up.railway.app/login', { // URL actualizada
+      const response = await fetch('http://localhost:3001/login', { // URL actualizada
         method: 'POST', // Se utiliza el método POST para enviar los datos al servidor.
         headers: { 
           'Content-Type': 'application/json', // Se indica que los datos son en formato JSON.
@@ -161,7 +161,7 @@ const Login = () => {
         <div className="about-section">
           <div className="about-content">
             <h3>Acerca del sistema</h3>
-            <p>Versión 1.5.2.1 (Estable) - Sistema de administración para invernaderos</p>
+            <p>Versión 1.5.2.2 (Estable) - Sistema de administración para invernaderos</p>
             <p>© {new Date().getFullYear()} Todos los derechos reservados</p> {/* Muestra el año actual */}
           </div>
         </div>

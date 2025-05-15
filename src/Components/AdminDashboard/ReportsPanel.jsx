@@ -11,11 +11,15 @@ const ReportsPanel = () => {
 
   const fetchVentas = async () => {
     try {
-      const response = await fetch(`https://proyecto-production-600d.up.railway.app/reportes/ventas_totales?start_date=${startDate}&end_date=${endDate}`); // URL actualizada
+      const response = await fetch(`http://localhost:3001/reportes/ventas_totales?start_date=${startDate}&end_date=${endDate}`);
       const data = await response.json();
 
       if (data.success) {
-        setVentas(data.data.ventas);
+        setVentas(data.data.ventas.map(v => ({
+          ...v,
+          total_venta: Number(v.total_venta) || 0,
+          fecha: v.fecha || ''
+        })));
       } else {
         setError(data.error || 'Error al obtener ventas');
       }
@@ -27,11 +31,16 @@ const ReportsPanel = () => {
 
   const fetchProductosVenta = async (idVenta) => {
     try {
-      const res = await fetch(`https://proyecto-production-600d.up.railway.app/reportes/productos_venta/${idVenta}`); // URL actualizada
+      const res = await fetch(`http://localhost:3001/reportes/productos_venta/${idVenta}`);
       const data = await res.json();
 
       if (data.success) {
-        setProductos(data.productos);
+        setProductos(data.productos.map(p => ({
+          ...p,
+          precio_unitario: Number(p.precio_unitario) || 0,
+          total: Number(p.total) || 0,
+          cantidad: Number(p.cantidad) || 0
+        })));
         setSelectedVentaId(idVenta);
       }
     } catch (err) {
@@ -56,7 +65,7 @@ const ReportsPanel = () => {
       <tr key={venta.id_venta}>
         <td>{venta.id_venta}</td>
         <td>{venta.fecha}</td>
-        <td>${venta.total_venta.toFixed(2)}</td>
+        <td>${(Number(venta.total_venta) || 0).toFixed(2)}</td>
         <td>
           <button className="detalle-btn" onClick={() => fetchProductosVenta(venta.id_venta)}>
             Ver productos
@@ -86,8 +95,8 @@ const ReportsPanel = () => {
               <tr key={idx}>
                 <td>{p.nombre}</td>
                 <td>{p.cantidad}</td>
-                <td>${p.precio_unitario.toFixed(2)}</td>
-                <td>${p.total.toFixed(2)}</td>
+                <td>${(Number(p.precio_unitario) || 0).toFixed(2)}</td>
+                <td>${(Number(p.total) || 0).toFixed(2)}</td>
               </tr>
             ))}
           </tbody>

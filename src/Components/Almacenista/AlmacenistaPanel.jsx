@@ -28,8 +28,8 @@ const AlmacenistaPanel = () => {
       setError(null);
       try {
         const [productosResp, proveedoresResp] = await Promise.all([
-          fetch('https://proyecto-production-600d.up.railway.app/productos'), // URL actualizada
-          fetch('https://proyecto-production-600d.up.railway.app/suppliers') // URL actualizada
+          fetch('http://localhost:3001/productos'),
+          fetch('http://localhost:3001/suppliers')
         ]);
 
         if (!productosResp.ok || !proveedoresResp.ok) {
@@ -38,7 +38,11 @@ const AlmacenistaPanel = () => {
 
         const productosData = await productosResp.json();
         const proveedoresData = await proveedoresResp.json();
-al
+
+        if (!productosData || !proveedoresData) {
+          throw new Error('Datos de respuesta no válidos');
+        }
+
         const listaProveedores = proveedoresData.suppliers || [];
 
         // CORREGIDO: Accede a productosData.productos
@@ -94,8 +98,8 @@ al
     try {
       const method = editando ? 'PUT' : 'POST';
       const url = editando
-        ? `https://proyecto-production-600d.up.railway.app/productos/${editando}` // URL actualizada
-        : 'https://proyecto-production-600d.up.railway.app/productos'; // URL actualizada
+        ? `http://localhost:3001/productos/${editando}`
+        : 'http://localhost:3001/productos';
 
       const response = await fetch(url, {
         method,
@@ -327,7 +331,7 @@ al
                               if (window.confirm('¿Seguro que deseas eliminar este producto?')) {
                                 setLoading(true);
                                 try {
-                                  const response = await fetch(`http://proyecto.railway.internal/productos/${p.id}`, { method: 'DELETE' }); // URL actualizada
+                                  const response = await fetch(`http://localhost:3001/productos/${p.id}`, { method: 'DELETE' });
                                   if (!response.ok) throw new Error('Error al eliminar producto');
                                   setProductos(prev => prev.filter(prod => prod.id !== p.id));
                                 } catch (err) {

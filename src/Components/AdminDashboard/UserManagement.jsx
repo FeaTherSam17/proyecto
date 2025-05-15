@@ -29,7 +29,7 @@ const UserManagement = () => {
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    fetch('https://proyecto-production-600d.up.railway.app/usuarios') // URL actualizada
+    fetch('http://localhost:3001/usuarios')
       .then(response => response.json())
       .then(data => setUsers(data))
       .catch(error => console.error('Error al cargar usuarios:', error));
@@ -51,8 +51,7 @@ const UserManagement = () => {
 
   const openEditModal = async (user) => {
     try {
-      // Petición al backend para obtener los datos completos del usuario
-      const res = await fetch(`https://proyecto-production-600d.up.railway.app/usuarios/${user.ID}`); // URL actualizada
+      const res = await fetch(`http://localhost:3001/usuarios/${user.ID}`);
       if (!res.ok) throw new Error('No se pudo obtener el usuario');
       const userData = await res.json();
   
@@ -111,13 +110,13 @@ const UserManagement = () => {
       };
       let response, result;
       if (editingUser) {
-        response = await fetch(`https://proyecto-production-600d.up.railway.app/usuarios/${editingUser.ID || editingUser.id_usuario}`, { // URL actualizada
+        response = await fetch(`http://localhost:3001/usuarios/${editingUser.ID || editingUser.id_usuario}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(userToSend)
         });
       } else {
-        response = await fetch('https://proyecto-production-600d.up.railway.app/usuarios', { // URL actualizada
+        response = await fetch('http://localhost:3001/usuarios', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(userToSend)
@@ -125,7 +124,7 @@ const UserManagement = () => {
       }
       result = await response.json();
       if (result.success) {
-        const updatedUsers = await fetch('https://proyecto-production-600d.up.railway.app/usuarios').then(res => res.json()); // URL actualizada
+        const updatedUsers = await fetch('http://localhost:3001/usuarios').then(res => res.json());
         setUsers(updatedUsers);
         closeModal();
       } else {
@@ -140,7 +139,7 @@ const UserManagement = () => {
     if (isAdmin) return;
     if (window.confirm('¿Estás seguro de eliminar este usuario?')) {
       try {
-        const res = await fetch(`https://proyecto-production-600d.up.railway.app/usuarios/${id}`, { method: 'DELETE' }); // URL actualizada
+        const res = await fetch(`http://localhost:3001/usuarios/${id}`, { method: 'DELETE' });
         const result = await res.json();
         if (result.success) {
           setUsers(users.filter(user => (user.ID || user.id_usuario) !== id));

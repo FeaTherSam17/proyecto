@@ -15,14 +15,14 @@ const TasksPanel = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   const fetchTasks = () => {
-    fetch('https://proyecto-production-600d.up.railway.app/tareas') // URL actualizada
+    fetch('http://localhost:3001/tareas')
       .then((response) => response.json())
       .then((data) => setTasks(data))
       .catch((error) => console.error('Error al obtener tareas:', error));
   };
 
   useEffect(() => {
-    fetch('https://proyecto-production-600d.up.railway.app/usuarios') // URL actualizada
+    fetch('http://localhost:3001/usuarios')
       .then((response) => response.json())
       .then((data) => {
         const filteredGardeners = data.filter(user => user.Rol === 'Jardinero');
@@ -58,7 +58,7 @@ const TasksPanel = () => {
       id_usuario: newTask.assignedTo
     };
 
-    fetch('https://proyecto-production-600d.up.railway.app/tareas', { // URL actualizada
+    fetch('http://localhost:3001/tareas', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -88,7 +88,7 @@ const TasksPanel = () => {
   };
 
   const deleteTask = (taskId) => {
-    fetch(`https://proyecto-production-600d.up.railway.app/tareas/${taskId}`, { // URL actualizada
+    fetch(`http://localhost:3001/tareas/${taskId}`, {
       method: 'DELETE',
     })
       .then((res) => res.json())
