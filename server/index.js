@@ -8,7 +8,7 @@ const app = express();
 
 // Configuración del middleware CORS
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://192.168.56.1:3000'], // Permite ambos orígenes
+  origin: ['http://localhost:3000', 'http://192.168.56.1:3000', 'https://green-house-a50d4.web.app'], // Permite ambos orígenes
   methods: ['GET', 'POST', 'PUT', 'DELETE'], // Métodos HTTP permitidos
   allowedHeaders: ['Content-Type', 'Cache-Control', 'Authorization'], // Cabeceras que el cliente puede enviar
 }));
@@ -18,11 +18,11 @@ app.use(express.json());
 
 // Configuración de la conexión a la base de datos MySQL
 const db = mysql.createConnection({
-  host: 'localhost',     // Dirección del servidor de la base de datos (localhost = el mismo equipo)
-  user: 'root',          // Usuario con el que se conectará
-  password: '',          // Contraseña del usuario (vacía en este caso)
-  database: 'invernadero', // Nombre de la base de datos que se utilizará
-  port: 3306             // Puerto por defecto de MySQL
+  host: 'gondola.proxy.rlwy.net',     // Host de Railway
+  user: 'root',                       // Usuario
+  password: 'BijghlBrLJRskbVrUtZSKeqjqajzhVuu',  // Contraseña
+  database: 'railway',                // Nombre de la base de datos
+  port: 38108                         // Puerto proporcionado
 });
 
 // Intento de conexión a la base de datos

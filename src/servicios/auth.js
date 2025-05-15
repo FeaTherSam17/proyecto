@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:3001'; // Asegúrate que coincide con tu puerto del backend
+const API_URL = 'https://proyecto-production-600d.up.railway.app'; // URL de tu backend en Railway
 
 export const login = async (credentials) => {
   try {
