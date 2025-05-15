@@ -28,8 +28,8 @@ const AlmacenistaPanel = () => {
       setError(null);
       try {
         const [productosResp, proveedoresResp] = await Promise.all([
-          fetch('http://proyecto.railway.internal/productos'), // URL actualizada
-          fetch('http://proyecto.railway.internal/suppliers') // URL actualizada
+          fetch('https://proyecto-production-600d.up.railway.app/productos'), // URL actualizada
+          fetch('https://proyecto-production-600d.up.railway.app/suppliers') // URL actualizada
         ]);
 
         if (!productosResp.ok || !proveedoresResp.ok) {
@@ -94,8 +94,8 @@ const AlmacenistaPanel = () => {
     try {
       const method = editando ? 'PUT' : 'POST';
       const url = editando
-        ? `http://proyecto.railway.internal/productos/${editando}` // URL actualizada
-        : 'http://proyecto.railway.internal/productos'; // URL actualizada
+        ? `https://proyecto-production-600d.up.railway.app/productos/${editando}` // URL actualizada
+        : 'https://proyecto-production-600d.up.railway.app/productos'; // URL actualizada
 
       const response = await fetch(url, {
         method,

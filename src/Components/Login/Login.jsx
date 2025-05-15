@@ -31,7 +31,7 @@ const Login = () => {
 
     try {
       // Petición POST al backend para autenticación
-      const response = await fetch('http://proyecto.railway.internal/login', { // URL actualizada
+      const response = await fetch('https://proyecto-production-600d.up.railway.app/login', { // URL actualizada
         method: 'POST', // Se utiliza el método POST para enviar los datos al servidor.
         headers: { 
           'Content-Type': 'application/json', // Se indica que los datos son en formato JSON.

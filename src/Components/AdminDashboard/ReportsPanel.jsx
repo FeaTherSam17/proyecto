@@ -11,7 +11,7 @@ const ReportsPanel = () => {
 
   const fetchVentas = async () => {
     try {
-      const response = await fetch(`http://proyecto.railway.internal/reportes/ventas_totales?start_date=${startDate}&end_date=${endDate}`); // URL actualizada
+      const response = await fetch(`https://proyecto-production-600d.up.railway.app/reportes/ventas_totales?start_date=${startDate}&end_date=${endDate}`); // URL actualizada
       const data = await response.json();
 
       if (data.success) {
@@ -27,7 +27,7 @@ const ReportsPanel = () => {
 
   const fetchProductosVenta = async (idVenta) => {
     try {
-      const res = await fetch(`http://proyecto.railway.internal/reportes/productos_venta/${idVenta}`); // URL actualizada
+      const res = await fetch(`https://proyecto-production-600d.up.railway.app/reportes/productos_venta/${idVenta}`); // URL actualizada
       const data = await res.json();
 
       if (data.success) {

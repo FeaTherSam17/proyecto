@@ -1233,7 +1233,7 @@ app.put('/tareas/:id/completar', (req, res) => {
 
 // -------------------- INICIAR SERVIDOR --------------------
 // Inicialización del servidor en el puerto 3001
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`🚀 Servidor backend escuchando en el puerto ${PORT}`);
 });
