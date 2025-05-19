@@ -147,14 +147,23 @@ app.post('/usuarios', (req, res) => {
     return res.status(400).json({ success: false, error: 'Rol no válido' });
   }
 
-  // Inserta un nuevo usuario en la base de datos
-  const sql = `
-    INSERT INTO usuarios (nombre, apellidoP, apellidoM, username, password, id_rol, fecha_creacion)
-    VALUES (?, ?, ?, ?, ?, ?, NOW())
-  `;
-  db.query(sql, [nombre, apellidoPat, apellidoMat, username, password, role], (err) => {
-    if (err) return res.status(500).json({ success: false, error: 'Error al insertar usuario' });
-    res.json({ success: true, message: 'Usuario creado correctamente' });
+  // Verifica si el username ya existe
+  const checkSql = 'SELECT id_usuario FROM usuarios WHERE username = ?';
+  db.query(checkSql, [username], (err, results) => {
+    if (err) return res.status(500).json({ success: false, error: 'Error al verificar usuario' });
+    if (results.length > 0) {
+      return res.status(400).json({ success: false, error: 'El usuario ya existe' });
+    }
+
+    // Inserta un nuevo usuario en la base de datos
+    const sql = `
+      INSERT INTO usuarios (nombre, apellidoP, apellidoM, username, password, id_rol, fecha_creacion)
+      VALUES (?, ?, ?, ?, ?, ?, NOW())
+    `;
+    db.query(sql, [nombre, apellidoPat, apellidoMat, username, password, role], (err) => {
+      if (err) return res.status(500).json({ success: false, error: 'Error al insertar usuario' });
+      res.json({ success: true, message: 'Usuario creado correctamente' });
+    });
   });
 });
 
@@ -521,56 +530,89 @@ app.get('/operaciones-proveedores', (req, res) => {
   });
 });
 
-// Crear una nueva operación para un proveedor
+// Crear una nueva operación para un proveedor y actualizar stock de productos
 app.post('/operaciones-proveedores', (req, res) => {
-  const { tipo, id_proveedor, fecha, total, descripcion } = req.body;
-  
+  const { tipo, id_proveedor, fecha, total, descripcion, productos } = req.body;
+
   // Validamos campos obligatorios (excepto descripción)
-  if (!tipo || !id_proveedor || !fecha || !total) {
+  if (!tipo || !id_proveedor || !fecha || !total || !Array.isArray(productos) || productos.length === 0) {
     return res.status(400).json({
       success: false,
-      error: 'Todos los campos son obligatorios excepto descripción'
+      error: 'Todos los campos son obligatorios y debe haber al menos un producto'
     });
   }
 
-  const sql = 'INSERT INTO operaciones_proveedores SET ?';
-  // Insertamos la nueva operación en la base de datos
-  db.query(sql, { tipo, id_proveedor, fecha, total, descripcion }, (err, result) => {
+  // Inicia la transacción
+  db.beginTransaction(err => {
     if (err) {
-      console.error('Error al crear operación:', err);
-      return res.status(500).json({
-        success: false,
-        error: 'Error al crear operación',
-        details: err.message
-      });
+      return res.status(500).json({ success: false, error: 'Error al iniciar transacción', details: err.message });
     }
-    
-    // Obtenemos los datos completos de la operación recién insertada
-    const getSql = `
-      SELECT 
-        op.*, 
-        p.nombre AS proveedor, 
-        p.factura AS factura_proveedor
-      FROM operaciones_proveedores op
-      JOIN Proveedores p ON op.id_proveedor = p.id_proveedor
-      WHERE op.id_operacion = ?
-    `;
-    
-    db.query(getSql, [result.insertId], (err, results) => {
-      if (err || !results.length) {
-        return res.json({
-          success: true,
-          id: result.insertId,
-          message: 'Operación creada pero no se pudo recuperar los detalles'
+
+    // Inserta la operación
+    const sqlOperacion = 'INSERT INTO operaciones_proveedores SET ?';
+    db.query(sqlOperacion, { tipo, id_proveedor, fecha, total, descripcion }, (err, result) => {
+      if (err) {
+        return db.rollback(() => {
+          res.status(500).json({ success: false, error: 'Error al crear operación', details: err.message });
         });
       }
-      
-      // Enviamos los datos completos de la operación recién creada
-      res.json({
-        success: true,
-        operacion: results[0],
-        message: 'Operación creada exitosamente'
+
+      const id_operacion = result.insertId;
+
+      // Procesa cada producto para actualizar stock
+      let errorStock = null;
+      let processed = 0;
+
+      productos.forEach(prod => {
+        // Consulta el stock actual
+        db.query('SELECT stock FROM Producto WHERE id_producto = ?', [prod.id_producto], (err, rows) => {
+          if (err || rows.length === 0) {
+            errorStock = 'Producto no encontrado';
+            return done();
+          }
+
+          let nuevoStock = tipo === 'compra'
+            ? rows[0].stock + prod.cantidad
+            : rows[0].stock - prod.cantidad;
+
+          if (tipo === 'venta' && nuevoStock < 0) {
+            errorStock = `Stock insuficiente para el producto ID ${prod.id_producto}`;
+            return done();
+          }
+
+          // Actualiza el stock
+          db.query('UPDATE Producto SET stock = ? WHERE id_producto = ?', [nuevoStock, prod.id_producto], (err) => {
+            if (err) {
+              errorStock = 'Error al actualizar stock';
+              return done();
+            }
+            done();
+          });
+        });
       });
+
+      function done() {
+        processed++;
+        if (processed === productos.length) {
+          if (errorStock) {
+            return db.rollback(() => {
+              res.status(400).json({ success: false, error: errorStock });
+            });
+          }
+          db.commit(err => {
+            if (err) {
+              return db.rollback(() => {
+                res.status(500).json({ success: false, error: 'Error al confirmar transacción', details: err.message });
+              });
+            }
+            res.json({
+              success: true,
+              message: 'Operación y stock actualizados correctamente',
+              id_operacion
+            });
+          });
+        }
+      }
     });
   });
 });
@@ -982,52 +1024,20 @@ app.get('/productos', (req, res) => {
   });
 });
 
-// Modificar un producto existente
+// Endpoint para actualizar solo el stock de un producto (opcional, útil para otras operaciones)
 app.put('/productos/:id', (req, res) => {
   const { id } = req.params;
-  const { nombre, id_categoria, precio, stock, id_proveedor } = req.body;
+  const { stock } = req.body;
 
-  if (!nombre || !id_categoria || precio === undefined || stock === undefined) {
-    return res.status(400).json({
-      success: false,
-      message: 'Nombre, categoría, precio y stock son obligatorios'
-    });
+  if (typeof stock !== 'number' || stock < 0) {
+    return res.status(400).json({ success: false, error: 'Stock inválido' });
   }
 
-  const updateSql = `
-    UPDATE producto 
-    SET nombre = ?, id_categoria = ?, precio = ?, stock = ?, id_proveedor = ?
-    WHERE id_producto = ?
-  `;
-
-  db.query(updateSql, [
-    nombre,
-    id_categoria,
-    parseFloat(precio),
-    parseInt(stock),
-    id_proveedor || null,
-    id
-  ], (err, result) => {
+  db.query('UPDATE Producto SET stock = ? WHERE id_producto = ?', [stock, id], (err) => {
     if (err) {
-      console.error('❌ Error al modificar producto:', err);
-      return res.status(500).json({
-        success: false,
-        message: 'Error al modificar producto',
-        error: err.message
-      });
+      return res.status(500).json({ success: false, error: 'Error al actualizar stock', details: err.message });
     }
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'Producto no encontrado'
-      });
-    }
-
-    return res.json({
-      success: true,
-      message: 'Producto modificado correctamente'
-    });
+    res.json({ success: true, message: 'Stock actualizado correctamente' });
   });
 });
 

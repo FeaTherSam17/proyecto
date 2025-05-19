@@ -128,7 +128,12 @@ const UserManagement = () => {
         setUsers(updatedUsers);
         closeModal();
       } else {
-        alert(result.error || 'Error al guardar usuario');
+        // Aquí mostramos el mensaje específico si el username ya existe
+        if (result.error && result.error.toLowerCase().includes('usuario ya existe')) {
+          alert('No se puede insertar: el nombre de usuario ya está registrado en la base de datos.');
+        } else {
+          alert(result.error || 'Error al guardar usuario');
+        }
       }
     } catch (error) {
       console.error('Error al guardar usuario:', error);
