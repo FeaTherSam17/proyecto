@@ -655,13 +655,23 @@ const SuppliersPanel = () => {
                         <input
                             type="number"
                             name="precio"
-                            placeholder="Precio de Compra"
+                            placeholder="Precio Individual"
                             value={newProductDetails.precio}
                             onChange={handleNewProductDetailsChange}
                             required
                             min="0.01"
                             step="0.01"
                             disabled={isLoading}
+                        />
+                        <input
+                            type="number"
+                            name="precioCompra"
+                            placeholder="Precio de Compra"
+                            value={newProductDetails.precioCompra}
+                            onChange={handleNewProductDetailsChange}
+                            min="0.01"
+                            step="0.01"
+                            required
                         />
                         <input
                             type="number"
