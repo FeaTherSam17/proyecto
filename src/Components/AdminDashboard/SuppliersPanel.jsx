@@ -304,21 +304,27 @@ const SuppliersPanel = () => {
   };
 
   // Eliminar Proveedor
-  const deleteSupplier = async (id) => {
-    if (!window.confirm('¿Eliminar este proveedor?')) return;
-
+  const handleDeleteSupplier = async (id_proveedor) => {
+    if (!window.confirm('¿Estás seguro de eliminar este proveedor?')) return;
     setIsLoading(true);
     try {
-      const response = await fetch(`http://localhost:3001/suppliers/${id}`, { method: 'DELETE' });
+      const response = await fetch(`http://localhost:3001/suppliers/${id_proveedor}`, {
+        method: 'DELETE'
+      });
       const data = await response.json();
-
-      if (!response.ok) throw new Error(data.error || 'Error al eliminar');
-
-      setSuppliers(suppliers.filter(s => s.id_proveedor !== id));
-      alert(data.message || 'Proveedor eliminado');
+      if (data.success) {
+        setSuppliers(suppliers.filter(s => s.id_proveedor !== id_proveedor));
+        alert('Proveedor eliminado correctamente.');
+      } else {
+        // Aquí interpretamos el error del backend
+        if (data.error && data.error.toLowerCase().includes('productos asociados')) {
+          alert('No se puede eliminar el proveedor porque tiene productos asociados.');
+        } else {
+          alert(data.error || 'Error al eliminar proveedor');
+        }
+      }
     } catch (err) {
-      console.error('Error:', err);
-      alert(err.message);
+      alert('Error al eliminar proveedor');
     } finally {
       setIsLoading(false);
     }
@@ -529,7 +535,7 @@ const SuppliersPanel = () => {
                               ✏️ Editar
                             </button>
                             <button
-                              onClick={() => deleteSupplier(supplier.id_proveedor)}
+                              onClick={() => handleDeleteSupplier(supplier.id_proveedor)}
                               disabled={isLoading}
                             >
                               🗑️ Eliminar

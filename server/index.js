@@ -469,6 +469,13 @@ app.delete('/suppliers/:id', (req, res) => {
   db.query(sql, [id], (err) => {
     if (err) {
       console.error('Error al eliminar proveedor:', err);
+      // Detectar error de clave foránea (productos asociados)
+      if (err.code === 'ER_ROW_IS_REFERENCED_' || err.code === 'ER_ROW_IS_REFERENCED_2' || (err.errno === 1451)) {
+        return res.status(400).json({
+          success: false,
+          error: 'No se puede eliminar el proveedor porque tiene productos asociados.'
+        });
+      }
       return res.status(500).json({
         success: false,
         error: 'Error al eliminar proveedor',

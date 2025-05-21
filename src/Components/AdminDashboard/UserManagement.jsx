@@ -312,7 +312,7 @@ const UserManagement = () => {
                   <option value={4}>Jardinero</option>
                   <option value={2}>Almacenista</option>
                   <option value={3}>Cajero</option>
-                  {/* <option value={1}>Administrador</option>  <-- Elimina o comenta esta línea */}
+                 <option value={1}>Administrador</option>  {/*<-- Elimina o comenta esta línea */}
                 </select>
               </div>
               {/* Permitir cambiar contraseña al editar, excepto admin */}
